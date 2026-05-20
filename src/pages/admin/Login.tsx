@@ -45,13 +45,12 @@ export default function AdminLogin() {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md relative z-10"
       >
-        {/* Logo */}
         <div className="flex justify-center mb-10">
-          <img src="/logo.png" alt="Himsagar Travels" className="h-12 w-auto object-contain brightness-0 invert" />
+          <img src="/logo.png" alt="Himsagar Travels" className="h-16 md:h-20 w-auto object-contain brightness-0 invert" />
         </div>
 
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 md:p-12 rounded-3xl shadow-2xl">
-          <h1 className="text-2xl font-serif italic mb-2 text-white text-center">Admin Access</h1>
+          <h1 className="text-2xl font-serif mb-2 text-white text-center">Admin Access</h1>
           <p className="text-white/40 text-[10px] uppercase tracking-widest text-center mb-10 font-bold">Secure Internal Portal</p>
 
           <form onSubmit={handleLogin} className="space-y-6">

@@ -20,6 +20,11 @@ export default function InquiryManager() {
       const res = await fetch("/api/admin/inquiries", {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem("adminToken");
+        window.location.href = "/admin/login";
+        return;
+      }
       if (!res.ok) throw new Error("Unauthorized");
       const data = await res.json();
       // Normalize _id -> id for MongoDB documents
@@ -44,6 +49,11 @@ export default function InquiryManager() {
         },
         body: JSON.stringify({ status }),
       });
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem("adminToken");
+        window.location.href = "/admin/login";
+        return;
+      }
       if (!res.ok) throw new Error("Failed to update");
       await fetchInquiries();
     } catch (err) {
@@ -141,7 +151,7 @@ export default function InquiryManager() {
             >
               {/* Avatar & Status */}
               <div className="flex md:flex-col items-center gap-4 shrink-0">
-                <div className="w-14 h-14 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary text-xl font-black font-serif italic">
+                <div className="w-14 h-14 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary text-xl font-black font-serif">
                   {inquiry.name[0]?.toUpperCase()}
                 </div>
                 <span className={cn(
@@ -221,7 +231,7 @@ export default function InquiryManager() {
         ) : (
           <div className="py-20 text-center bg-white rounded-2xl border border-gray-100">
             <MessageSquare size={48} className="text-gray-200 mx-auto mb-4" />
-            <p className="text-gray-400 italic font-serif text-lg">No inquiries match your current filters.</p>
+            <p className="text-gray-400 font-serif text-lg">No inquiries match your current filters.</p>
             <button onClick={() => { setFilter("all"); setSearchTerm(""); }} className="mt-4 text-brand-primary text-xs uppercase tracking-widest font-black hover:underline">
               Clear Filters
             </button>

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Save, Lock, Globe, Bell, Database, CheckCircle } from "lucide-react";
 
 export default function Settings() {
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [settings, setSettings] = useState({
     siteName: "Himsagar Travels",
     contactEmail: "concierge@himsagar.com",
@@ -16,10 +17,74 @@ export default function Settings() {
     inquiryAlerts: true,
   });
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    if (!token) {
+      setError("Admin token not found. Please log in again.");
+      return;
+    }
+
+    fetch("/api/admin/settings", { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => res.json())
+      .then((data) => {
+        setSettings((prev) => ({
+          ...prev,
+          siteName: data.site_name || prev.siteName,
+          contactEmail: data.contact_email || prev.contactEmail,
+          contactPhone: data.contact_phone || prev.contactPhone,
+          address: data.address || prev.address,
+          instagram: data.instagram_url || prev.instagram,
+          emailNotifications: data.email_notifications ?? prev.emailNotifications,
+          inquiryAlerts: data.inquiry_alerts ?? prev.inquiryAlerts,
+        }));
+      })
+      .catch(() => {
+        setError("Unable to load settings from the server.");
+      });
+  }, []);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setError(null);
+
+    if (settings.newPassword && settings.newPassword !== settings.confirmPassword) {
+      setError("New password and confirm password do not match.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("adminToken");
+      if (!token) {
+        throw new Error("Admin token not found. Please log in again.");
+      }
+
+      const response = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          site_name: settings.siteName,
+          contact_email: settings.contactEmail,
+          contact_phone: settings.contactPhone,
+          address: settings.address,
+          instagram_url: settings.instagram,
+          email_notifications: settings.emailNotifications,
+          inquiry_alerts: settings.inquiryAlerts,
+        }),
+      });
+
+      if (!response.ok) {
+        const body = await response.json();
+        throw new Error(body.error || "Failed to save settings.");
+      }
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err: any) {
+      setError(err.message || "Unable to save settings.");
+    }
   };
 
   const InputField = ({ label, value, onChange, type = "text", placeholder = "" }: any) => (
@@ -45,11 +110,16 @@ export default function Settings() {
       )}
 
       <form onSubmit={handleSave} className="space-y-8">
+        {error && (
+          <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 rounded-2xl px-6 py-4">
+            <span className="text-sm font-bold">{error}</span>
+          </div>
+        )}
         {/* Site Info */}
         <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm space-y-6">
           <div className="flex items-center gap-3 mb-2">
             <Globe size={18} className="text-brand-primary" />
-            <h3 className="text-lg font-serif italic text-gray-800">Site Information</h3>
+            <h3 className="text-lg font-serif text-gray-800">Site Information</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField label="Site Name" value={settings.siteName} onChange={(e: any) => setSettings({ ...settings, siteName: e.target.value })} />
@@ -64,7 +134,7 @@ export default function Settings() {
         <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm space-y-6">
           <div className="flex items-center gap-3 mb-2">
             <Lock size={18} className="text-brand-primary" />
-            <h3 className="text-lg font-serif italic text-gray-800">Change Password</h3>
+            <h3 className="text-lg font-serif text-gray-800">Change Password</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <InputField label="Current Password" type="password" value={settings.currentPassword} placeholder="••••••••" onChange={(e: any) => setSettings({ ...settings, currentPassword: e.target.value })} />
@@ -77,7 +147,7 @@ export default function Settings() {
         <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm space-y-6">
           <div className="flex items-center gap-3 mb-2">
             <Bell size={18} className="text-brand-primary" />
-            <h3 className="text-lg font-serif italic text-gray-800">Notifications</h3>
+            <h3 className="text-lg font-serif text-gray-800">Notifications</h3>
           </div>
           {[
             { key: "emailNotifications", label: "Email Notifications", desc: "Receive general platform updates via email." },
@@ -103,7 +173,7 @@ export default function Settings() {
         <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
             <Database size={18} className="text-brand-primary" />
-            <h3 className="text-lg font-serif italic text-gray-800">Database</h3>
+            <h3 className="text-lg font-serif text-gray-800">Database</h3>
           </div>
           <div className="flex items-center gap-3 bg-green-50 border border-green-100 rounded-2xl px-5 py-4">
             <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />

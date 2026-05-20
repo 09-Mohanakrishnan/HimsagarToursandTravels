@@ -12,7 +12,9 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import EventManager from "./pages/admin/EventManager";
 import InquiryManager from "./pages/admin/InquiryManager";
+import ContentManager from "./pages/admin/ContentManager";
 import Settings from "./pages/admin/Settings";
+import SubscriptionManager from "./pages/admin/SubscriptionManager";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -49,12 +51,14 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="events" element={<EventManager />} />
+          <Route path="subscriptions" element={<SubscriptionManager />} />
           <Route path="inquiries" element={<InquiryManager />} />
+          <Route path="content" element={<ContentManager />} />
           <Route path="settings" element={<Settings />} />
         </Route>
 
         {/* 404 */}
-        <Route path="*" element={<MainLayout><div className="pt-40 h-screen flex items-center justify-center text-3xl italic font-serif text-gray-400">404 — Page not found</div></MainLayout>} />
+        <Route path="*" element={<MainLayout><div className="pt-40 h-screen flex items-center justify-center text-3xl font-serif text-gray-400">404 — Page not found</div></MainLayout>} />
       </Routes>
     </BrowserRouter>
   );

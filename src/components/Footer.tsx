@@ -1,7 +1,37 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Instagram, Phone, Mail, MapPin } from "lucide-react";
+import SubscriptionForm from "./SubscriptionForm";
 
 export default function Footer() {
+  const [content, setContent] = useState({
+    contact_email: "concierge@himsagar.com",
+    contact_phone: "+91 78457 38386",
+    address: "Kolkata, West Bengal, India",
+    instagram_url: "https://www.instagram.com/himsagar_travels",
+    site_name: "Himsagar Travels",
+  });
+
+  useEffect(() => {
+    fetch("/api/content")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data) {
+          setContent((prev) => ({
+            ...prev,
+            contact_email: data.contact_email || prev.contact_email,
+            contact_phone: data.contact_phone || prev.contact_phone,
+            address: data.address || prev.address,
+            instagram_url: data.instagram_url || prev.instagram_url,
+            site_name: data.site_name || prev.site_name,
+          }));
+        }
+      })
+      .catch(() => {
+        // Keep defaults on failure.
+      });
+  }, []);
+
   return (
     <footer className="bg-brand-navy border-t border-white/10 pt-20 pb-8">
       <div className="container mx-auto px-6 md:px-12">
@@ -12,7 +42,7 @@ export default function Footer() {
               <img
                 src="/logo.png"
                 alt="Himsagar Travels"
-                className="h-10 w-auto object-contain brightness-0 invert"
+                className="h-16 md:h-20 w-auto object-contain brightness-0 invert"
               />
             </Link>
             <p className="text-white/50 leading-relaxed text-sm max-w-xs">
@@ -55,42 +85,36 @@ export default function Footer() {
             <ul className="space-y-5">
               <li className="flex items-start gap-3">
                 <MapPin size={14} className="text-brand-primary mt-1 shrink-0" />
-                <span className="text-white/50 text-xs font-medium leading-relaxed">Kolkata, West Bengal, India</span>
+                <span className="text-white/50 text-xs font-medium leading-relaxed">{content.address}</span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={14} className="text-brand-primary shrink-0" />
-                <a href="tel:+917845738386" className="text-white/50 hover:text-white text-xs font-medium transition-colors">+91 78457 38386</a>
+                <a href={`tel:${content.contact_phone.replace(/\s+/g, "")}`} className="text-white/50 hover:text-white text-xs font-medium transition-colors">
+                  {content.contact_phone}
+                </a>
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={14} className="text-brand-primary shrink-0" />
-                <a href="mailto:concierge@himsagar.com" className="text-white/50 hover:text-white text-xs font-medium transition-colors">concierge@himsagar.com</a>
+                <a href={`mailto:${content.contact_email}`} className="text-white/50 hover:text-white text-xs font-medium transition-colors">
+                  {content.contact_email}
+                </a>
               </li>
             </ul>
           </div>
 
           {/* Newsletter */}
-          <div>
-            <h4 className="text-[10px] uppercase tracking-[0.4em] font-black text-brand-primary mb-8">Newsletter</h4>
-            <p className="text-white/50 text-xs font-bold leading-relaxed mb-6 uppercase tracking-widest">
-              Get early access to exclusive tour launches.
-            </p>
-            <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="email"
-                placeholder="Your email"
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-brand-primary transition-all text-[11px] uppercase tracking-widest placeholder:text-white/20 text-white"
-              />
-              <button type="submit" className="w-full py-3 bg-brand-primary text-white font-black text-[10px] uppercase tracking-widest hover:bg-brand-accent transition-all rounded-xl">
-                Subscribe
-              </button>
-            </form>
-          </div>
+          <SubscriptionForm
+            source="footer"
+            title="Newsletter"
+            description="Get early access to exclusive tour launches."
+            buttonLabel="Subscribe"
+          />
         </div>
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-[9px] uppercase tracking-[0.4em] text-white/30 font-bold">
-            © {new Date().getFullYear()} Himsagar Travels. All rights reserved.
+            © {new Date().getFullYear()} {content.site_name}. All rights reserved.
           </p>
           <a
             href="https://www.freshdigihub.com/"

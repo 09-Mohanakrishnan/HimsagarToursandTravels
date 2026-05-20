@@ -30,7 +30,7 @@ export default function EventManager() {
   };
 
   const handleCreateNew = () => {
-    setSelectedEvent({ title: "", description: "", date: "", price: "", location: "", category: "Spiritual", images: [], is_featured: false });
+    setSelectedEvent({ title: "", description: "", date: "", price: "", location: "", category: "Spiritual", images: [], itinerary: [], is_featured: false });
     setNewImagePreviews([]);
     setIsEditing(true);
   };
@@ -44,10 +44,15 @@ export default function EventManager() {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this tour?")) return;
     const token = localStorage.getItem("adminToken");
-    await fetch(`/api/admin/events/${id}`, {
+    const res = await fetch(`/api/admin/events/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem("adminToken");
+      window.location.href = "/admin/login";
+      return;
+    }
     fetchEvents();
   };
 
@@ -77,6 +82,7 @@ export default function EventManager() {
     formData.append("is_featured", String(selectedEvent!.is_featured || false));
     // Send existing images — field name must match server: "existing_images"
     formData.append("existing_images", JSON.stringify(selectedEvent!.images || []));
+    formData.append("itinerary", JSON.stringify(selectedEvent!.itinerary || []));
 
     // Attach new image files
     if (fileInputRef.current?.files) {
@@ -95,6 +101,11 @@ export default function EventManager() {
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem("adminToken");
+        window.location.href = "/admin/login";
+        return;
+      }
       if (!res.ok) throw new Error(await res.text());
       setIsEditing(false);
       setNewImagePreviews([]);
@@ -115,7 +126,7 @@ export default function EventManager() {
         {!isEditing ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-8">
             <div className="flex justify-between items-center">
-              <p className="text-gray-400 text-sm italic font-serif">
+              <p className="text-gray-400 text-sm font-serif">
                 {events.length} tour{events.length !== 1 ? "s" : ""} in database.
               </p>
               <button
@@ -157,7 +168,7 @@ export default function EventManager() {
                       <h3 className="text-lg font-bold text-gray-900 mb-1">{event.title}</h3>
                       <p className="text-xs text-gray-400 mb-4">{event.location} · {event.date}</p>
                       <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-4">
-                        <span className="text-xl font-black italic text-brand-primary">₹{event.price}</span>
+                        <span className="text-xl font-black text-brand-primary">₹{event.price}</span>
                         <span className="text-[9px] uppercase tracking-widest text-gray-300 font-bold">{event.images.length} images</span>
                       </div>
                     </div>
@@ -173,7 +184,7 @@ export default function EventManager() {
                 <ArrowLeft size={20} />
               </button>
               <div>
-                <h2 className="text-2xl font-serif italic text-gray-900">
+                <h2 className="text-2xl font-serif text-gray-900">
                   {selectedEvent?.id ? "Edit Tour" : "Add New Tour"}
                 </h2>
                 <p className="text-xs text-gray-400 uppercase tracking-widest mt-0.5">
@@ -265,6 +276,83 @@ export default function EventManager() {
                   </div>
                   <span className="text-[10px] uppercase font-black text-gray-500 tracking-widest">Feature on Homepage</span>
                 </label>
+              </div>
+
+              {/* Itinerary */}
+              <div className="bg-white border border-gray-100 p-8 rounded-3xl space-y-6 shadow-sm">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-black text-gray-800 uppercase tracking-widest text-xs">Detailed Itinerary</h3>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      const newItinerary = [...(selectedEvent?.itinerary || []), { day: (selectedEvent?.itinerary?.length || 0) + 1, title: "", description: "" }];
+                      setSelectedEvent({ ...selectedEvent!, itinerary: newItinerary });
+                    }}
+                    className="text-xs font-black uppercase tracking-widest text-brand-primary flex items-center gap-2 hover:text-brand-accent transition-colors"
+                  >
+                    <Plus size={14} /> Add Day
+                  </button>
+                </div>
+                
+                <div className="space-y-4">
+                  {selectedEvent?.itinerary?.map((dayObj, idx) => (
+                    <div key={idx} className="p-6 border border-gray-100 rounded-2xl bg-slate-50 relative flex gap-6">
+                      <div className="shrink-0 flex flex-col items-center gap-2">
+                        <span className="text-[10px] uppercase font-black text-gray-400 tracking-widest">Day</span>
+                        <input 
+                          type="number" 
+                          value={dayObj.day} 
+                          onChange={(e) => {
+                            const newItinerary = [...selectedEvent.itinerary!];
+                            newItinerary[idx].day = Number(e.target.value);
+                            setSelectedEvent({ ...selectedEvent, itinerary: newItinerary });
+                          }}
+                          className="w-16 p-2 text-center border rounded-lg font-bold"
+                        />
+                      </div>
+                      <div className="flex-1 space-y-3">
+                        <input 
+                          type="text" 
+                          placeholder="Day Title (e.g. Arrival in Kathmandu)" 
+                          value={dayObj.title}
+                          onChange={(e) => {
+                            const newItinerary = [...selectedEvent.itinerary!];
+                            newItinerary[idx].title = e.target.value;
+                            setSelectedEvent({ ...selectedEvent, itinerary: newItinerary });
+                          }}
+                          className="w-full p-3 border rounded-lg font-bold"
+                        />
+                        <textarea 
+                          placeholder="Activities for the day..." 
+                          value={dayObj.description}
+                          onChange={(e) => {
+                            const newItinerary = [...selectedEvent.itinerary!];
+                            newItinerary[idx].description = e.target.value;
+                            setSelectedEvent({ ...selectedEvent, itinerary: newItinerary });
+                          }}
+                          className="w-full p-3 border rounded-lg text-sm"
+                          rows={3}
+                        />
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const newItinerary = [...selectedEvent.itinerary!];
+                          newItinerary.splice(idx, 1);
+                          setSelectedEvent({ ...selectedEvent, itinerary: newItinerary });
+                        }}
+                        className="text-gray-400 hover:text-red-500 absolute top-6 right-6"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                  {(!selectedEvent?.itinerary || selectedEvent.itinerary.length === 0) && (
+                    <div className="text-center p-8 border border-dashed rounded-2xl text-gray-400 font-medium text-sm">
+                      No itinerary days added yet.
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Images */}

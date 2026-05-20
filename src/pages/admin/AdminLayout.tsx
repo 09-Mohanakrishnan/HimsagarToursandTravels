@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, Calendar, MessageSquare, LogOut, Settings, User, Menu, X } from "lucide-react";
+import { LayoutDashboard, Calendar, MessageSquare, LogOut, Settings, User, Menu, X, Globe, Mail } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 export default function AdminLayout() {
@@ -22,6 +22,8 @@ export default function AdminLayout() {
   const menuItems = [
     { name: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
     { name: "Tours", path: "/admin/events", icon: Calendar },
+    { name: "Subscriptions", path: "/admin/subscriptions", icon: Mail },
+    { name: "Page Content", path: "/admin/content", icon: Globe },
     { name: "Inquiries", path: "/admin/inquiries", icon: MessageSquare },
     { name: "Settings", path: "/admin/settings", icon: Settings },
   ];
@@ -33,11 +35,11 @@ export default function AdminLayout() {
       !mobile && "transition-all duration-300"
     )}>
       {/* Logo */}
-      <div className="p-6 border-b border-white/10 flex items-center gap-3">
-        <img src="/logo.png" alt="Himsagar Travels" className="h-7 w-auto object-contain brightness-0 invert shrink-0" />
-        {(sidebarOpen || mobile) && (
-          <span className="text-[9px] font-black uppercase tracking-widest text-white/40 whitespace-nowrap">Admin Panel</span>
-        )}
+      <div className="p-6 border-b border-white/10 flex items-center gap-2">
+        <img src="/logo.png" alt="Himsagar Travels" className="h-10 md:h-12 w-auto object-contain brightness-0 invert shrink-0" />
+        {/* {(sidebarOpen || mobile) && (
+          <span className="text-[9px] font-black uppercase tracking-widest text-white/40 whitespace-nowrap">Adminnnn Panel</span>
+        )} */}
       </div>
 
       <nav className="flex-grow p-4 space-y-1 pt-6">
@@ -107,7 +109,7 @@ export default function AdminLayout() {
             </button>
             <div>
               <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Himsagar Travels</p>
-              <h2 className="text-lg font-serif italic text-gray-800">{currentPage}</h2>
+              <h2 className="text-lg font-serif text-gray-800">{currentPage}</h2>
             </div>
           </div>
 

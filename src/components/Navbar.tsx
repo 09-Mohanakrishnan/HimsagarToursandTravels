@@ -41,7 +41,7 @@ export default function Navbar() {
             src="/logo.png"
             alt="Himsagar Travels"
             className={cn(
-              "h-8 md:h-10 w-auto object-contain transition-all",
+              "h-14 md:h-20 w-auto object-contain transition-all",
               isDarkNav ? "brightness-0" : "brightness-0 invert"
             )}
           />
@@ -101,7 +101,7 @@ export default function Navbar() {
               to={link.path}
               onClick={() => setIsOpen(false)}
               className={cn(
-                "text-xl font-serif font-black italic tracking-tighter transition-colors py-2 border-b border-gray-50",
+                "text-xl font-serif font-black  tracking-tighter transition-colors py-2 border-b border-gray-50",
                 location.pathname === link.path ? "text-brand-primary" : "text-gray-900"
               )}
             >

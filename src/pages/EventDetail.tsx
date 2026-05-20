@@ -145,10 +145,13 @@ export default function EventDetail() {
     }
   };
 
-  if (loading) return <div className="h-screen flex items-center justify-center bg-white"><div className="animate-pulse text-brand-primary text-lg font-serif italic">Loading experience...</div></div>;
-  if (!event) return <div className="h-screen flex items-center justify-center bg-white"><p className="text-2xl font-serif italic text-gray-400">Experience not found</p></div>;
+  if (loading) return <div className="h-screen flex items-center justify-center bg-white"><div className="animate-pulse text-brand-primary text-lg font-serif">Loading experience...</div></div>;
+  if (!event) return <div className="h-screen flex items-center justify-center bg-white"><p className="text-2xl font-serif text-gray-400">Experience not found</p></div>;
 
   const meta = tourMeta[event.title] || defaultMeta;
+  const itineraryToDisplay = event.itinerary && event.itinerary.length > 0 
+    ? event.itinerary.map(item => ({ day: `Day ${item.day}`, title: item.title, desc: item.description })) 
+    : meta.itinerary;
 
   return (
     <div className="flex flex-col bg-white">
@@ -162,7 +165,7 @@ export default function EventDetail() {
           <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
             <p className="text-brand-primary text-[10px] uppercase tracking-[0.4em] font-black mb-3">{event.category} Tour</p>
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter leading-none mb-3">{event.title}</h1>
-            <p className="text-xl md:text-2xl font-serif italic text-white/80 mb-6">{meta.tagline}</p>
+            <p className="text-xl md:text-2xl font-serif text-white/80 mb-6">{meta.tagline}</p>
             <div className="flex flex-wrap gap-6 text-[10px] uppercase tracking-widest font-bold text-white/70">
               <span className="flex items-center gap-2"><MapPin size={14} className="text-brand-primary" />{event.location}</span>
               <span className="flex items-center gap-2"><Calendar size={14} className="text-brand-primary" />{event.date}</span>
@@ -179,7 +182,7 @@ export default function EventDetail() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
             <div className="space-y-8">
               <div>
-                <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4 italic">Overview</h4>
+                <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4">Overview</h4>
                 <h2 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight tracking-tighter mb-6">Experience the {event.title}</h2>
                 <p className="text-gray-500 leading-relaxed text-lg">{event.description}</p>
               </div>
@@ -208,8 +211,8 @@ export default function EventDetail() {
       {/* Section 3: Gallery */}
       <section className="py-24 bg-gray-50 border-y border-gray-100">
         <div className="container mx-auto px-6 lg:px-12">
-          <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4 italic">Visual Journey</h4>
-          <h2 className="text-4xl font-serif font-black italic text-gray-900 tracking-tighter mb-12">A Journey in Pictures</h2>
+          <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4">Visual Journey</h4>
+          <h2 className="text-4xl font-serif font-black text-gray-900 tracking-tighter mb-12">A Journey in Pictures</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {event.images.map((img, i) => (
               <div key={i} className={`overflow-hidden rounded-2xl group ${i === 0 ? "md:col-span-2 md:row-span-2" : ""}`}>
@@ -224,12 +227,12 @@ export default function EventDetail() {
       <section className="py-24 bg-white">
         <div className="container mx-auto px-6 lg:px-12">
           <div className="max-w-4xl">
-            <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4 italic">Day by Day</h4>
+            <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4">Day by Day</h4>
             <h2 className="text-4xl lg:text-5xl font-black text-gray-900 tracking-tighter mb-4">Detailed Itinerary</h2>
             <p className="text-[10px] text-brand-primary/80 uppercase tracking-widest font-bold mb-12"><Route size={12} className="inline mr-2" />{meta.route}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {meta.itinerary.map((item, i) => (
+            {itineraryToDisplay.map((item, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
                 className="p-8 bg-gray-50 rounded-3xl border border-gray-100 hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
@@ -239,7 +242,7 @@ export default function EventDetail() {
                     <h4 className="text-lg font-black text-gray-900">{item.title}</h4>
                   </div>
                 </div>
-                <p className="text-sm text-gray-500 leading-relaxed pl-[52px]">{item.desc}</p>
+                <p className="text-sm text-gray-500 leading-relaxed pl-[52px] whitespace-pre-line">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -252,7 +255,7 @@ export default function EventDetail() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             {/* Inclusions */}
             <div>
-              <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4 italic">Package Details</h4>
+              <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4">Package Details</h4>
               <h2 className="text-4xl font-black tracking-tighter mb-10">What's Included</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {meta.inclusions.map((item, i) => {
@@ -281,7 +284,7 @@ export default function EventDetail() {
 
             {/* Inquiry Form */}
             <div>
-              <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4 italic">Get in Touch</h4>
+              <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4">Get in Touch</h4>
               <h2 className="text-4xl font-black tracking-tighter mb-10">Book This Tour</h2>
               {submitted ? (
                 <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-16 bg-white/5 rounded-3xl border border-white/10">

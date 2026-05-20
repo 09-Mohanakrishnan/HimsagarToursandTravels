@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Calendar, MessageSquare, TrendingUp, ArrowUpRight, ArrowDownRight, Settings } from "lucide-react";
+import { Users, Calendar, MessageSquare, TrendingUp, ArrowUpRight, ArrowDownRight, Settings, Mail } from "lucide-react";
 import { TravelEvent, Inquiry } from "../../types";
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
@@ -8,7 +8,8 @@ export default function Dashboard() {
   const [stats, setStats] = useState({
     eventsCount: 0,
     inquiriesCount: 0,
-    newInquiries: 0
+    subscriptionCount: 0,
+    newInquiries: 0,
   });
   const [recentInquiries, setRecentInquiries] = useState<Inquiry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,18 +18,25 @@ export default function Dashboard() {
     const fetchData = async () => {
       const token = localStorage.getItem("adminToken");
       try {
-        const [eventsRes, inquiriesRes] = await Promise.all([
-          fetch("/api/events"),
-          fetch("/api/admin/inquiries", { headers: { Authorization: `Bearer ${token}` } })
-        ]);
+        const eventsRes = await fetch("/api/events");
+        const inquiriesRes = await fetch("/api/admin/inquiries", { headers: { Authorization: `Bearer ${token}` } });
+        const subscriptionsRes = await fetch("/api/admin/subscriptions", { headers: { Authorization: `Bearer ${token}` } });
         
+        if (inquiriesRes.status === 401 || inquiriesRes.status === 403 || subscriptionsRes.status === 401 || subscriptionsRes.status === 403) {
+          localStorage.removeItem("adminToken");
+          window.location.href = "/admin/login";
+          return;
+        }
+
         const events = await eventsRes.json();
         const inquiries = await inquiriesRes.json();
+        const subscriptions = await subscriptionsRes.json();
         
         setStats({
           eventsCount: events.length,
           inquiriesCount: inquiries.length,
-          newInquiries: inquiries.filter((i: Inquiry) => i.status === 'pending').length
+          subscriptionCount: subscriptions.length,
+          newInquiries: inquiries.filter((i: Inquiry) => i.status === 'pending').length,
         });
         setRecentInquiries(inquiries.slice(0, 5));
       } catch (err) {
@@ -42,9 +50,9 @@ export default function Dashboard() {
 
   const statCards = [
     { label: "Active Tours", value: stats.eventsCount, icon: Calendar, color: "text-blue-600", change: "+2 this week", isUp: true },
+    { label: "Newsletter Subscribers", value: stats.subscriptionCount, icon: Mail, color: "text-brand-primary", change: "+5 this week", isUp: true },
     { label: "Total Inquiries", value: stats.inquiriesCount, icon: MessageSquare, color: "text-emerald-600", change: "+12% total", isUp: true },
     { label: "New Requests", value: stats.newInquiries, icon: Users, color: "text-orange-600", change: "Requires Action", isUp: false },
-    { label: "Projected Rev", value: "₹4.5L+", icon: TrendingUp, color: "text-indigo-600", change: "+4% vs LY", isUp: true },
   ];
 
   if (loading) return <div>Loading systems...</div>;
@@ -74,7 +82,7 @@ export default function Dashboard() {
               </div>
             </div>
             <h3 className="text-gray-400 text-xs uppercase tracking-widest font-black mb-2">{stat.label}</h3>
-            <p className="text-4xl font-serif font-black italic tracking-tighter text-gray-800">{stat.value}</p>
+            <p className="text-4xl font-serif font-black tracking-tighter text-gray-800">{stat.value}</p>
           </motion.div>
         ))}
       </div>
@@ -83,7 +91,7 @@ export default function Dashboard() {
         {/* Recent Inquiries List */}
         <div className="lg:col-span-2 bg-white border border-gray-100 rounded-[3rem] p-10 shadow-sm">
           <div className="flex justify-between items-center mb-10">
-            <h3 className="text-2xl font-serif italic text-gray-800">Recent Inquiries</h3>
+            <h3 className="text-2xl font-serif text-gray-800">Recent Inquiries</h3>
             <Link to="/admin/inquiries" className="text-xs uppercase tracking-widest font-black text-gray-300 hover:text-brand-primary transition-colors">
               View All Systems
             </Link>
@@ -93,12 +101,12 @@ export default function Dashboard() {
             {recentInquiries.map((inquiry, i) => (
               <div key={inquiry.id} className="group p-6 rounded-2xl bg-white border border-gray-50 flex items-center justify-between hover:bg-slate-50 transition-all shadow-sm">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary font-black italic">
+                  <div className="w-12 h-12 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary font-black">
                     {inquiry.name[0]}
                   </div>
                   <div>
                     <h4 className="font-bold text-gray-800 group-hover:text-brand-primary transition-colors">{inquiry.name}</h4>
-                    <p className="text-xs text-gray-400 italic font-serif">Interested in {inquiry.event_title || "General Query"}</p>
+                    <p className="text-xs text-gray-400 font-serif">Interested in {inquiry.event_title || "General Query"}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-8">
@@ -121,11 +129,11 @@ export default function Dashboard() {
         {/* System Health / Quick Links */}
         <div className="bg-white border border-gray-100 rounded-[3rem] p-10 flex flex-col justify-between shadow-sm">
           <div>
-            <h3 className="text-2xl font-serif italic mb-10 text-gray-800">Admin Quickstart</h3>
+            <h3 className="text-2xl font-serif mb-10 text-gray-800">Admin Quickstart</h3>
             <div className="space-y-4">
               <Link to="/admin/events" className="w-full p-6 h-32 rounded-3xl bg-brand-primary text-white flex flex-col justify-between hover:bg-brand-dark transition-all shadow-lg shadow-brand-primary/20">
                 <Calendar size={28} />
-                <span className="font-black uppercase tracking-tighter text-xl italic">Add New Tour</span>
+                <span className="font-black uppercase tracking-tighter text-xl">Add New Tour</span>
               </Link>
               <div className="grid grid-cols-2 gap-4">
                 <button className="aspect-square rounded-3xl bg-slate-50 border border-gray-50 flex flex-col items-center justify-center gap-3 hover:bg-slate-100 transition-colors shadow-sm">
