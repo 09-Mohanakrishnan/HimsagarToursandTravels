@@ -290,10 +290,10 @@ export default function Home() {
       {content?.instagram_moments && content.instagram_moments.length > 0 && (
         <section className="py-32 bg-white border-t border-gray-100 overflow-hidden flex flex-col">
           <div className="container mx-auto px-6 relative z-20">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
               <div>
                 <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-6">Visual Manifest</h4>
-                <h2 className="text-5xl md:text-7xl font-serif font-black tracking-tighter text-gray-900">Instagram <br />Moments</h2>
+                <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif font-black tracking-tighter text-gray-900">Instagram <br />Moments</h2>
               </div>
               <a href="https://www.instagram.com/himsagar_travels?igsh=ZzF2MzdkOHZweHlp" target="_blank" rel="noreferrer" className="text-gray-400 font-bold hover:text-brand-primary transition-colors group flex items-center gap-2 pb-2 border-b border-gray-100 uppercase tracking-widest text-[10px]">
                 Follow @HimsagarTravels

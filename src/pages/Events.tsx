@@ -37,7 +37,7 @@ export default function Events() {
       <div className="container mx-auto px-12">
         <header className="mb-20">
           <h4 className="text-brand-primary text-[10px] uppercase tracking-[0.4em] font-black mb-6">Discovery Catalog</h4>
-          <h1 className="text-7xl md:text-9xl font-serif font-black tracking-tighter mb-8 text-gray-900">Experiences</h1>
+          <h1 className="text-4xl md:text-7xl lg:text-9xl font-serif font-black tracking-tighter mb-8 text-gray-900">Experiences</h1>
           <p className="text-gray-400 max-w-2xl text-base uppercase tracking-[0.2em] leading-loose font-bold">
             From the high peaks of the North to the silent deserts of the West.
           </p>

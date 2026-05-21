@@ -26,7 +26,7 @@ export default function About() {
         <header className="text-center max-w-4xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
             <h4 className="text-brand-primary text-[10px] uppercase tracking-[0.4em] font-black mb-6">Our Origin</h4>
-            <h1 className="text-7xl md:text-9xl font-serif font-black tracking-tighter mb-8 text-gray-900 leading-[0.85]">The Art of <br/>Discovery</h1>
+            <h1 className="text-5xl md:text-7xl lg:text-9xl font-serif font-black tracking-tighter mb-8 text-gray-900 leading-[0.85]">The Art of <br/>Discovery</h1>
             <p className="text-gray-500 text-base uppercase tracking-[0.2em] font-bold leading-loose mt-12">
               Himsagar Travels was founded on a simple belief: that travel is not just about visiting places, but about the unique stories that emerge when we step into the unknown.
             </p>

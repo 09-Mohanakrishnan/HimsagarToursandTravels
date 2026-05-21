@@ -98,7 +98,7 @@ export default function Contact() {
       <section className="container mx-auto px-12 mb-20 text-center max-w-4xl">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
           <h4 className="text-brand-primary text-[10px] uppercase tracking-[0.4em] font-black mb-6">Secure Channel</h4>
-          <h1 className="text-7xl md:text-9xl font-serif font-black tracking-tighter mb-8 text-gray-900">Contact Us</h1>
+          <h1 className="text-4xl md:text-7xl lg:text-9xl font-serif font-black tracking-tighter mb-8 text-gray-900">Contact Us</h1>
           <p className="text-gray-400 text-base uppercase tracking-[0.2em] font-bold leading-loose">
             Reach out to our global concierge for inquiries, partnerships, or expedition planning.
           </p>
@@ -274,7 +274,7 @@ export default function Contact() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
             <div>
               <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-primary mb-6">White Glove Service</h4>
-              <h2 className="text-5xl font-serif font-black tracking-tighter text-gray-900 mb-8">The VIP Concierge</h2>
+              <h2 className="text-4xl md:text-5xl font-serif font-black tracking-tighter text-gray-900 mb-8">The VIP Concierge</h2>
               <p className="text-gray-500 leading-relaxed mb-8">
                 Our private client advisory handles the most complex travel demands for ultra-high-net-worth individuals, royal families, and corporate executives. We provide absolute discretion, unlisted property access, and security details.
               </p>
@@ -284,8 +284,8 @@ export default function Contact() {
                 <li className="flex items-center gap-4"><Globe className="text-brand-primary" size={16} /> Unlisted Property Access</li>
               </ul>
             </div>
-            <div className="aspect-square rounded-full overflow-hidden border-8 border-slate-50 shadow-2xl">
-              <img src="https://images.unsplash.com/photo-1542314831-c6a4d142104d?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover" alt="Concierge service" />
+            <div className="w-full max-w-[520px] mx-auto aspect-square rounded-full overflow-hidden border-8 border-slate-50 shadow-2xl">
+              <img src="/coincerge.png" className="w-full h-full object-cover" alt="Concierge service" />
             </div>
           </div>
         </div>
