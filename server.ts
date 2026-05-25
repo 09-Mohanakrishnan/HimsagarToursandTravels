@@ -1,7 +1,7 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
-import { createServer as createViteServer } from "vite";
+// Vite is a dev-only dependency. Load it at runtime in development only.
 import multer from "multer";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -723,20 +723,34 @@ async function startServer() {
     }
   });
 
-  // Vite SSR / SPA
-  const vite = await createViteServer({ server: { middlewareMode: true }, appType: "spa" });
-  app.use(vite.middlewares);
-  app.use("*", async (req, res) => {
-    const url = req.originalUrl;
-    try {
-      let template = fs.readFileSync(path.resolve("index.html"), "utf-8");
-      template = await vite.transformIndexHtml(url, template);
-      res.status(200).set({ "Content-Type": "text/html" }).end(template);
-    } catch (e: any) {
-      vite.ssrFixStacktrace(e);
-      res.status(500).end(e.message);
-    }
-  });
+  // Vite SSR / SPA — enable only in development. In production serve built assets directly.
+  if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
+    const vite = await createViteServer({ server: { middlewareMode: true }, appType: "spa" });
+    app.use(vite.middlewares);
+    app.use("*", async (req, res) => {
+      const url = req.originalUrl;
+      try {
+        let template = fs.readFileSync(path.resolve("index.html"), "utf-8");
+        template = await vite.transformIndexHtml(url, template);
+        res.status(200).set({ "Content-Type": "text/html" }).end(template);
+      } catch (e: any) {
+        vite.ssrFixStacktrace(e);
+        res.status(500).end(e.message);
+      }
+    });
+  } else {
+    // Production: serve the prebuilt index.html (no Vite)
+    app.use("*", async (req, res) => {
+      try {
+        const html = fs.readFileSync(path.resolve("index.html"), "utf-8");
+        res.status(200).set({ "Content-Type": "text/html" }).end(html);
+      } catch (e: any) {
+        console.error("Failed to serve index.html in production:", e);
+        res.status(500).end("Server error");
+      }
+    });
+  }
 
   const server = app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
   server.on("error", (err: NodeJS.ErrnoException) => {
