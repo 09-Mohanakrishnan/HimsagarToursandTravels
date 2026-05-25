@@ -9,7 +9,6 @@ import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
 
 dotenv.config();
 
@@ -127,18 +126,36 @@ cloudinary.config({
   api_secret: process.env.API_SECRETE
 });
 
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
+// Use multer memory storage and upload buffers to Cloudinary manually.
+const upload = multer({ storage: multer.memoryStorage() });
+
+const uploadBufferToCloudinary = async (buffer: Buffer, mimetype?: string, filename?: string) => {
+  const dataUri = `data:${mimetype || "image/jpeg"};base64,${buffer.toString("base64")}`;
+  const res = await cloudinary.uploader.upload(dataUri, {
     folder: 'himsagar-tours',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp']
-  } as any
-});
-const upload = multer({ storage });
+    resource_type: 'image',
+    use_filename: true,
+    unique_filename: true,
+  });
+  return (res.secure_url || res.url) as string;
+};
+
+// Helper to safely parse incoming fields that may be JSON strings or already-parsed objects
+const parseMaybeJSON = (value: any) => {
+  if (value === undefined || value === null) return value;
+  if (typeof value === "string") {
+    try {
+      return JSON.parse(value);
+    } catch (e) {
+      return value;
+    }
+  }
+  return value;
+};
 
 // ─── Seed Data ────────────────────────────────────────────────────────────────
 
-const seedEvents = [
+const seedEvents: any[] = [
   {
     title: "Char Dham Yatra",
     description: "Embark on a sacred and soul-stirring Char Dham Yatra, covering the four most revered Himalayan shrines — Yamunotri, Gangotri, Kedarnath, and Badrinath — along with spiritually significant destinations like Haridwar, Rishikesh, and Barkot. Trek through pristine Himalayan valleys, witness the sacred Ganges at its source, and seek divine blessings at ancient temples perched among snow-capped peaks.",
@@ -271,7 +288,7 @@ async function startServer() {
   // Seed SiteContent if empty
   const contentCount = await SiteContent.countDocuments();
   if (contentCount === 0) {
-    await SiteContent.create({
+  await SiteContent.create({
       hero_images: [
         "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=2000",
         "https://images.unsplash.com/photo-1626621331169-5f34be280ed9?auto=format&fit=crop&q=80&w=2000",
@@ -373,7 +390,7 @@ async function startServer() {
         { q: "What is your cancellation policy?", a: "Cancellation terms are individually structured based on the specific vendors and properties in your itinerary. Your dedicated travel designer will provide a transparent outline of all terms before any deposit is collected." },
         { q: "Do you provide on-trip support?", a: "Absolutely. Every Himsagar Travels client receives access to our 24/7 global concierge desk, along with direct contact to local fixers in your destination timezone." }
       ]
-    });
+    } as any);
     console.log("Seeded initial SiteContent.");
   } else {
     // Patch existing document with missing fields
@@ -532,32 +549,32 @@ async function startServer() {
       let content = await SiteContent.findOne().sort({ created_at: -1 });
       
       const updateData = {
-        hero_images: payload.hero_images ? JSON.parse(payload.hero_images) : content?.hero_images,
-        categories: payload.categories ? JSON.parse(payload.categories) : content?.categories,
-        stats: payload.stats ? JSON.parse(payload.stats) : content?.stats,
-        philosophy: payload.philosophy ? JSON.parse(payload.philosophy) : content?.philosophy,
-        essentials: payload.essentials ? JSON.parse(payload.essentials) : content?.essentials,
-        destinations: payload.destinations ? JSON.parse(payload.destinations) : content?.destinations,
-        testimonials: payload.testimonials ? JSON.parse(payload.testimonials) : content?.testimonials,
-        instagram_moments: payload.instagram_moments ? JSON.parse(payload.instagram_moments) : content?.instagram_moments,
-        
-        tours_trust_indicators: payload.tours_trust_indicators ? JSON.parse(payload.tours_trust_indicators) : content?.tours_trust_indicators,
-        tours_differences: payload.tours_differences ? JSON.parse(payload.tours_differences) : content?.tours_differences,
-        
-        about_heritage_stats: payload.about_heritage_stats ? JSON.parse(payload.about_heritage_stats) : content?.about_heritage_stats,
-        about_principles: payload.about_principles ? JSON.parse(payload.about_principles) : content?.about_principles,
-        about_global_stats: payload.about_global_stats ? JSON.parse(payload.about_global_stats) : content?.about_global_stats,
-        about_team: payload.about_team ? JSON.parse(payload.about_team) : content?.about_team,
-        
-        contact_offices: payload.contact_offices ? JSON.parse(payload.contact_offices) : content?.contact_offices,
-        contact_faqs: payload.contact_faqs ? JSON.parse(payload.contact_faqs) : content?.contact_faqs,
+        hero_images: parseMaybeJSON(payload.hero_images) ?? content?.hero_images,
+        categories: parseMaybeJSON(payload.categories) ?? content?.categories,
+        stats: parseMaybeJSON(payload.stats) ?? content?.stats,
+        philosophy: parseMaybeJSON(payload.philosophy) ?? content?.philosophy,
+        essentials: parseMaybeJSON(payload.essentials) ?? content?.essentials,
+        destinations: parseMaybeJSON(payload.destinations) ?? content?.destinations,
+        testimonials: parseMaybeJSON(payload.testimonials) ?? content?.testimonials,
+        instagram_moments: parseMaybeJSON(payload.instagram_moments) ?? content?.instagram_moments,
+
+        tours_trust_indicators: parseMaybeJSON(payload.tours_trust_indicators) ?? content?.tours_trust_indicators,
+        tours_differences: parseMaybeJSON(payload.tours_differences) ?? content?.tours_differences,
+
+        about_heritage_stats: parseMaybeJSON(payload.about_heritage_stats) ?? content?.about_heritage_stats,
+        about_principles: parseMaybeJSON(payload.about_principles) ?? content?.about_principles,
+        about_global_stats: parseMaybeJSON(payload.about_global_stats) ?? content?.about_global_stats,
+        about_team: parseMaybeJSON(payload.about_team) ?? content?.about_team,
+
+        contact_offices: parseMaybeJSON(payload.contact_offices) ?? content?.contact_offices,
+        contact_faqs: parseMaybeJSON(payload.contact_faqs) ?? content?.contact_faqs,
         site_name: payload.site_name || content?.site_name,
         contact_email: payload.contact_email || content?.contact_email,
         contact_phone: payload.contact_phone || content?.contact_phone,
         address: payload.address || content?.address,
         instagram_url: payload.instagram_url || content?.instagram_url,
-        email_notifications: payload.hasOwnProperty("email_notifications") ? payload.email_notifications === "true" || payload.email_notifications === true : content?.email_notifications,
-        inquiry_alerts: payload.hasOwnProperty("inquiry_alerts") ? payload.inquiry_alerts === "true" || payload.inquiry_alerts === true : content?.inquiry_alerts,
+        email_notifications: Object.prototype.hasOwnProperty.call(payload, "email_notifications") ? (payload.email_notifications === "true" || payload.email_notifications === true) : content?.email_notifications,
+        inquiry_alerts: Object.prototype.hasOwnProperty.call(payload, "inquiry_alerts") ? (payload.inquiry_alerts === "true" || payload.inquiry_alerts === true) : content?.inquiry_alerts,
       };
 
       if (!content) {
@@ -568,13 +585,16 @@ async function startServer() {
       }
       res.json(content);
     } catch (err) {
+      console.error("Failed to update content", { error: err, payload: req.body });
       res.status(500).json({ error: "Failed to update content" });
     }
   });
 
   // Events — admin CRUD
   app.post("/api/admin/events", authenticateToken, upload.array("images", 10), async (req, res) => {
-    const imageUrls = (req.files as Express.Multer.File[])?.map(f => f.path) || [];
+    const files = req.files as Express.Multer.File[];
+    const uploadPromises = (files || []).map(f => uploadBufferToCloudinary((f.buffer as Buffer), f.mimetype, f.originalname));
+    const imageUrls = files && files.length ? await Promise.all(uploadPromises) : [];
     const existingImages = req.body.existing_images ? JSON.parse(req.body.existing_images) : [];
     const event = await Event.create({
       title: req.body.title,
@@ -591,7 +611,9 @@ async function startServer() {
   });
 
   app.put("/api/admin/events/:id", authenticateToken, upload.array("images", 10), async (req, res) => {
-    const imageUrls = (req.files as Express.Multer.File[])?.map(f => f.path) || [];
+    const files = req.files as Express.Multer.File[];
+    const uploadPromises = (files || []).map(f => uploadBufferToCloudinary((f.buffer as Buffer), f.mimetype, f.originalname));
+    const imageUrls = files && files.length ? await Promise.all(uploadPromises) : [];
     const existingImages = req.body.existing_images ? JSON.parse(req.body.existing_images) : [];
     const event = await Event.findByIdAndUpdate(
       req.params.id,
@@ -689,10 +711,16 @@ async function startServer() {
   });
 
   // Image upload (Standalone)
-  app.post("/api/admin/upload", authenticateToken, upload.array("images", 10), (req, res) => {
-    const files = req.files as Express.Multer.File[];
-    const urls = files.map(f => f.path);
-    res.json({ urls });
+  app.post("/api/admin/upload", authenticateToken, upload.array("images", 10), async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      const uploadPromises = (files || []).map(f => uploadBufferToCloudinary((f.buffer as Buffer), f.mimetype, f.originalname));
+      const urls = files && files.length ? await Promise.all(uploadPromises) : [];
+      res.json({ urls });
+    } catch (err) {
+      console.error("Upload failed:", err);
+      res.status(500).json({ error: "Upload failed" });
+    }
   });
 
   // Vite SSR / SPA
