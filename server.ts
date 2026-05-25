@@ -740,15 +740,13 @@ async function startServer() {
       }
     });
   } else {
-    // Production: serve the prebuilt index.html (no Vite)
-    app.use("*", async (req, res) => {
-      try {
-        const html = fs.readFileSync(path.resolve("index.html"), "utf-8");
-        res.status(200).set({ "Content-Type": "text/html" }).end(html);
-      } catch (e: any) {
-        console.error("Failed to serve index.html in production:", e);
-        res.status(500).end("Server error");
-      }
+    // Production: serve the built Vite files from `dist`.
+    const distPath = path.resolve(process.cwd(), "dist");
+    app.use(express.static(distPath));
+
+    // Keep SPA fallback after static files
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(distPath, "index.html"));
     });
   }
 
