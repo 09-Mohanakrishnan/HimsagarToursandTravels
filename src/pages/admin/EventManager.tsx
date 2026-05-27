@@ -11,6 +11,7 @@ export default function EventManager() {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Partial<TravelEvent> | null>(null);
   const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
+  const [uploadingChapterIdx, setUploadingChapterIdx] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { fetchEvents(); }, []);
@@ -30,7 +31,7 @@ export default function EventManager() {
   };
 
   const handleCreateNew = () => {
-    setSelectedEvent({ title: "", description: "", date: "", price: "", location: "", category: "Spiritual", images: [], itinerary: [], is_featured: false });
+    setSelectedEvent({ title: "", description: "", date: "", price: "", location: "", category: "Spiritual", images: [], itinerary: [], visual_journey: [], is_featured: false });
     setNewImagePreviews([]);
     setIsEditing(true);
   };
@@ -66,6 +67,37 @@ export default function EventManager() {
     setNewImagePreviews(previews);
   };
 
+  const handleChapterImageUpload = async (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingChapterIdx(idx);
+    
+    const formData = new FormData();
+    formData.append("images", file);
+    
+    try {
+      const token = localStorage.getItem("adminToken");
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.urls && data.urls.length > 0) {
+          const newJourney = [...(selectedEvent?.visual_journey || [])];
+          newJourney[idx].image = data.urls[0];
+          setSelectedEvent({ ...selectedEvent!, visual_journey: newJourney });
+        }
+      }
+    } catch (err) {
+      console.error("Upload failed", err);
+      alert("Failed to upload image");
+    } finally {
+      setUploadingChapterIdx(null);
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -83,6 +115,7 @@ export default function EventManager() {
     // Send existing images — field name must match server: "existing_images"
     formData.append("existing_images", JSON.stringify(selectedEvent!.images || []));
     formData.append("itinerary", JSON.stringify(selectedEvent!.itinerary || []));
+    formData.append("visual_journey", JSON.stringify(selectedEvent!.visual_journey || []));
 
     // Attach new image files
     if (fileInputRef.current?.files) {
@@ -118,7 +151,10 @@ export default function EventManager() {
     }
   };
 
-  const categories = ["Spiritual", "Domestic", "International", "Adventure", "Cultural"];
+  const categories = Array.from(new Set([
+    "Spiritual", "Domestic", "International", "Adventure", "Cultural",
+    ...events.map(e => e.category).filter(Boolean)
+  ]));
 
   return (
     <div className="space-y-8">
@@ -210,13 +246,16 @@ export default function EventManager() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase font-black text-gray-400 tracking-widest">Category *</label>
-                    <select
-                      className="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 outline-none appearance-none text-gray-800 font-medium focus:border-brand-primary transition-colors"
+                    <input
+                      list="category-options"
+                      className="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 outline-none focus:border-brand-primary text-gray-800 font-medium transition-colors"
                       value={selectedEvent?.category || "Spiritual"}
                       onChange={e => setSelectedEvent({ ...selectedEvent!, category: e.target.value })}
-                    >
-                      {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                      placeholder="Select or type new category"
+                    />
+                    <datalist id="category-options">
+                      {categories.map(c => <option key={c} value={c} />)}
+                    </datalist>
                   </div>
                 </div>
 
@@ -350,6 +389,148 @@ export default function EventManager() {
                   {(!selectedEvent?.itinerary || selectedEvent.itinerary.length === 0) && (
                     <div className="text-center p-8 border border-dashed rounded-2xl text-gray-400 font-medium text-sm">
                       No itinerary days added yet.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Visual Journey */}
+              <div className="bg-white border border-gray-100 p-8 rounded-3xl space-y-6 shadow-sm">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-black text-gray-800 uppercase tracking-widest text-xs">Visual Journey</h3>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      const newJourney = [...(selectedEvent?.visual_journey || []), { image: "", title: "", description: "", location: "" }];
+                      setSelectedEvent({ ...selectedEvent!, visual_journey: newJourney });
+                    }}
+                    className="text-xs font-black uppercase tracking-widest text-brand-primary flex items-center gap-2 hover:text-brand-accent transition-colors"
+                  >
+                    <Plus size={14} /> Add Chapter
+                  </button>
+                </div>
+                
+                <div className="space-y-4">
+                  {selectedEvent?.visual_journey?.map((chapter, idx) => (
+                    <div key={idx} className="p-6 border border-gray-100 rounded-2xl bg-slate-50 relative flex gap-6 flex-col md:flex-row">
+                      <div className="shrink-0 flex flex-col items-center gap-2 w-full md:w-48">
+                        <span className="text-[10px] uppercase font-black text-gray-400 tracking-widest self-start">Image</span>
+                        <div className="w-full aspect-video bg-gray-200 rounded-xl overflow-hidden relative border border-gray-100 flex items-center justify-center">
+                          {chapter.image ? (
+                            <img src={chapter.image} className="w-full h-full object-cover" alt="Journey" />
+                          ) : (
+                            <Camera size={24} className="text-gray-400" />
+                          )}
+                          {uploadingChapterIdx === idx && (
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                              <Loader2 className="w-6 h-6 animate-spin text-white" />
+                            </div>
+                          )}
+                        </div>
+                        <label className="text-[10px] uppercase font-black tracking-widest text-brand-primary cursor-pointer hover:text-brand-accent transition-colors mt-1">
+                          {chapter.image ? "Change Image" : "Upload Image"}
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={(e) => handleChapterImageUpload(idx, e)} 
+                          />
+                        </label>
+                        <input 
+                          type="text" 
+                          placeholder="Or paste image URL"
+                          value={chapter.image}
+                          onChange={(e) => {
+                            const newJourney = [...selectedEvent.visual_journey!];
+                            newJourney[idx].image = e.target.value;
+                            setSelectedEvent({ ...selectedEvent, visual_journey: newJourney });
+                          }}
+                          className="w-full mt-2 p-2 border rounded-lg text-xs"
+                        />
+                      </div>
+                      <div className="flex-1 space-y-3">
+                        <div className="flex gap-3">
+                          <input 
+                            type="text" 
+                            placeholder="Chapter Title" 
+                            value={chapter.title}
+                            onChange={(e) => {
+                              const newJourney = [...selectedEvent.visual_journey!];
+                              newJourney[idx].title = e.target.value;
+                              setSelectedEvent({ ...selectedEvent, visual_journey: newJourney });
+                            }}
+                            className="flex-1 p-3 border rounded-lg font-bold"
+                          />
+                          <input 
+                            type="text" 
+                            placeholder="Location Tag" 
+                            value={chapter.location}
+                            onChange={(e) => {
+                              const newJourney = [...selectedEvent.visual_journey!];
+                              newJourney[idx].location = e.target.value;
+                              setSelectedEvent({ ...selectedEvent, visual_journey: newJourney });
+                            }}
+                            className="w-1/3 p-3 border rounded-lg text-sm"
+                          />
+                        </div>
+                        <textarea 
+                          placeholder="Chapter Description..." 
+                          value={chapter.description}
+                          onChange={(e) => {
+                            const newJourney = [...selectedEvent.visual_journey!];
+                            newJourney[idx].description = e.target.value;
+                            setSelectedEvent({ ...selectedEvent, visual_journey: newJourney });
+                          }}
+                          className="w-full p-3 border rounded-lg text-sm"
+                          rows={3}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2 absolute top-6 right-6">
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            if (idx === 0) return;
+                            const newJourney = [...selectedEvent.visual_journey!];
+                            const temp = newJourney[idx - 1];
+                            newJourney[idx - 1] = newJourney[idx];
+                            newJourney[idx] = temp;
+                            setSelectedEvent({ ...selectedEvent, visual_journey: newJourney });
+                          }}
+                          className={cn("text-gray-400 hover:text-brand-primary", idx === 0 && "opacity-30 cursor-not-allowed")}
+                        >
+                          ↑
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            if (idx === selectedEvent.visual_journey!.length - 1) return;
+                            const newJourney = [...selectedEvent.visual_journey!];
+                            const temp = newJourney[idx + 1];
+                            newJourney[idx + 1] = newJourney[idx];
+                            newJourney[idx] = temp;
+                            setSelectedEvent({ ...selectedEvent, visual_journey: newJourney });
+                          }}
+                          className={cn("text-gray-400 hover:text-brand-primary", idx === selectedEvent.visual_journey!.length - 1 && "opacity-30 cursor-not-allowed")}
+                        >
+                          ↓
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            const newJourney = [...selectedEvent.visual_journey!];
+                            newJourney.splice(idx, 1);
+                            setSelectedEvent({ ...selectedEvent, visual_journey: newJourney });
+                          }}
+                          className="text-gray-400 hover:text-red-500 mt-2"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {(!selectedEvent?.visual_journey || selectedEvent.visual_journey.length === 0) && (
+                    <div className="text-center p-8 border border-dashed rounded-2xl text-gray-400 font-medium text-sm">
+                      No visual journey chapters added yet. If empty, the system will auto-generate them using standard images and highlights.
                     </div>
                   )}
                 </div>

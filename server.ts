@@ -42,6 +42,7 @@ const eventSchema = new mongoose.Schema({
   category: String,
   images: [String],
   itinerary: [{ day: Number, title: String, description: String }],
+  visual_journey: [{ image: String, title: String, description: String, location: String }],
   is_featured: { type: Boolean, default: false },
   created_at: { type: Date, default: Date.now },
 });
@@ -606,6 +607,7 @@ async function startServer() {
       is_featured: req.body.is_featured === "true",
       images: [...existingImages, ...imageUrls],
       itinerary: req.body.itinerary ? JSON.parse(req.body.itinerary) : [],
+      visual_journey: req.body.visual_journey ? JSON.parse(req.body.visual_journey) : [],
     });
     res.json({ ...event.toObject(), id: event._id });
   });
@@ -627,6 +629,7 @@ async function startServer() {
         is_featured: req.body.is_featured === "true",
         images: [...existingImages, ...imageUrls],
         itinerary: req.body.itinerary ? JSON.parse(req.body.itinerary) : [],
+        visual_journey: req.body.visual_journey ? JSON.parse(req.body.visual_journey) : [],
       },
       { returnDocument: "after" }
     );

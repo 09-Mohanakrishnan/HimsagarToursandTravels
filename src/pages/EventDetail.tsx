@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { MapPin, Calendar, Send, CheckCircle, Clock, Users, Route, Shield, Hotel, UtensilsCrossed, Bus, Ticket } from "lucide-react";
+import { MapPin, Calendar, Send, CheckCircle, Clock, Users, Route, Shield, Hotel, UtensilsCrossed, Bus, Ticket, ChevronLeft, ChevronRight } from "lucide-react";
 import { TravelEvent } from "../types";
 
 // Tour-specific metadata keyed by title
@@ -116,6 +116,16 @@ export default function EventDetail() {
   const { id } = useParams();
   const [event, setEvent] = useState<TravelEvent | null>(null);
   const [loading, setLoading] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      const { clientWidth } = scrollRef.current;
+      const scrollAmount = direction === "left" ? -clientWidth / 1.5 : clientWidth / 1.5;
+      scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
+
   const [formLoading, setFormLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -184,7 +194,7 @@ export default function EventDetail() {
               <div>
                 <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4">Overview</h4>
                 <h2 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight tracking-tighter mb-6">Experience the {event.title}</h2>
-                <p className="text-gray-500 leading-relaxed text-lg">{event.description}</p>
+                <p className="text-gray-500 leading-relaxed text-lg text-justify">{event.description}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 {meta.highlights.map((h, i) => (
@@ -197,29 +207,111 @@ export default function EventDetail() {
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              {event.images.slice(0, 4).map((img, i) => (
-                <div key={i} className={`overflow-hidden rounded-2xl ${i === 0 ? "col-span-2 aspect-[16/9]" : "aspect-square"}`}>
-                  <img src={img} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" alt={`${event.title} ${i + 1}`} />
+            <div className="relative h-full min-h-[500px] flex items-center justify-center">
+              {/* Decorative elements */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-gray-900/5 rounded-full blur-3xl pointer-events-none"></div>
+              
+              <div className="relative z-10 w-full max-w-md bg-white border border-gray-100 shadow-2xl shadow-gray-200/50 rounded-3xl p-8 overflow-hidden">
+                <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+                  <Route size={120} className="text-gray-900" />
                 </div>
-              ))}
+                
+                <h3 className="text-2xl font-black text-gray-900 mb-8 flex items-center gap-3">
+                  <span className="w-10 h-10 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center">
+                    <MapPin size={18} />
+                  </span>
+                  Journey Overview
+                </h3>
+
+                <div className="relative pl-5 space-y-6 before:absolute before:inset-y-2 before:left-[27px] before:w-[2px] before:bg-gradient-to-b before:from-brand-primary before:to-gray-100">
+                  {meta.route.split(' → ').map((stop, i) => (
+                    <motion.div 
+                      key={i}
+                      initial={{ opacity: 0, x: 20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.1 }}
+                      className="relative flex items-center gap-6"
+                    >
+                      <div className="relative z-10 w-4 h-4 rounded-full border-4 border-white bg-brand-primary shadow-sm shrink-0 -ml-[5px]"></div>
+                      <div className="flex-1 p-4 rounded-2xl border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-brand-primary/30 hover:shadow-lg transition-all group">
+                        <h4 className="font-bold text-gray-900 text-sm group-hover:text-brand-primary transition-colors">{stop}</h4>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+
+                <div className="mt-8 pt-8 border-t border-gray-100 grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 p-4 rounded-2xl text-center">
+                    <Clock size={16} className="text-brand-primary mx-auto mb-2" />
+                    <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">Duration</p>
+                    <p className="font-bold text-gray-900 text-sm">{meta.duration}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-2xl text-center">
+                    <Users size={16} className="text-brand-primary mx-auto mb-2" />
+                    <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">Group Size</p>
+                    <p className="font-bold text-gray-900 text-sm">10-15 pax</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Section 3: Gallery */}
-      <section className="py-24 bg-gray-50 border-y border-gray-100">
-        <div className="container mx-auto px-6 lg:px-12">
+      {/* Section 3: Visual Journey */}
+      <section className="bg-gray-900 text-white overflow-hidden py-24 relative group/section">
+        <div className="container mx-auto px-6 lg:px-12 text-center mb-16 relative">
           <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4">Visual Journey</h4>
-          <h2 className="text-4xl font-serif font-black text-gray-900 tracking-tighter mb-12">A Journey in Pictures</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {event.images.map((img, i) => (
-              <div key={i} className={`overflow-hidden rounded-2xl group ${i === 0 ? "md:col-span-2 md:row-span-2" : ""}`}>
-                <img src={img} className="w-full h-full object-cover aspect-square group-hover:scale-105 transition-transform duration-700" alt={`Gallery ${i + 1}`} />
-              </div>
-            ))}
+          <h2 className="text-4xl lg:text-6xl font-black tracking-tighter">A Journey in Pictures</h2>
+          
+          <div className="absolute right-6 lg:right-12 top-1/2 -translate-y-1/2 hidden md:flex gap-4">
+            <button onClick={() => scroll("left")} className="p-3 bg-gray-800 rounded-full hover:bg-brand-primary transition-colors text-white">
+              <ChevronLeft size={20} />
+            </button>
+            <button onClick={() => scroll("right")} className="p-3 bg-gray-800 rounded-full hover:bg-brand-primary transition-colors text-white">
+              <ChevronRight size={20} />
+            </button>
           </div>
+        </div>
+        
+        <div ref={scrollRef} className="flex overflow-x-auto snap-x snap-mandatory gap-6 px-6 lg:px-12 pb-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          {(event.visual_journey && event.visual_journey.length > 0 
+            ? event.visual_journey 
+            : event.images.slice(0, 4).map((img, i) => ({
+                image: img,
+                title: meta.highlights[i] || `Highlight ${i + 1}`,
+                description: `Experience the breathtaking beauty and cultural richness of ${meta.highlights[i] || 'this destination'}.`,
+                location: event.location
+              }))
+          ).map((item, i) => (
+            <div key={i} className="relative min-w-[85vw] md:min-w-[60vw] lg:min-w-[40vw] h-[60vh] rounded-3xl overflow-hidden group snap-center shrink-0 shadow-2xl">
+              <div className="absolute inset-0 z-0">
+                <img src={item.image} className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-110" alt={item.title} />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent" />
+              </div>
+              
+              <div className="absolute inset-x-0 bottom-0 p-8 z-10 flex flex-col justify-end h-full">
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }} 
+                  whileInView={{ opacity: 1, y: 0 }} 
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <span className="text-brand-primary text-4xl font-black opacity-90 mb-2 block leading-none">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <h3 className="text-2xl md:text-3xl font-black mb-3 tracking-tighter text-white">{item.title}</h3>
+                  <p className="text-gray-300 text-sm md:text-base leading-relaxed mb-6 line-clamp-3">{item.description}</p>
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-brand-primary">
+                    <MapPin size={12} />
+                    {item.location}
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 

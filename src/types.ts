@@ -9,6 +9,7 @@ export interface TravelEvent {
   category: string;
   images: string[];
   itinerary?: { day: number; title: string; description: string }[];
+  visual_journey?: { image: string; title: string; description: string; location: string }[];
   is_featured: boolean;
   created_at: string;
 }

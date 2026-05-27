@@ -1,16 +1,26 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Filter, MapPin, Calendar, Search, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import SubscriptionForm from "../components/SubscriptionForm";
 import { TravelEvent, SiteContent } from "../types";
 
 export default function Events() {
+  const [searchParams] = useSearchParams();
+  const initialCategory = searchParams.get("category") || "All";
+  
   const [events, setEvents] = useState<TravelEvent[]>([]);
   const [content, setContent] = useState<SiteContent | null>(null);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState("All");
+  const [category, setCategory] = useState(initialCategory);
   const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    const cat = searchParams.get("category");
+    if (cat) {
+      setCategory(cat);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     Promise.all([

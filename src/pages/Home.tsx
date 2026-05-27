@@ -130,15 +130,18 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {content.categories.map((cat, i) => (
-                <Link to="/tours" key={i} className="group relative rounded-3xl overflow-hidden aspect-[4/5] shadow-lg block">
-                  <img src={cat.image} alt={cat.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
-                    <h3 className="text-white text-3xl font-black uppercase tracking-tighter mb-2">{cat.title}</h3>
-                    <p className="text-brand-primary text-[10px] uppercase tracking-widest font-bold">{cat.count}</p>
-                  </div>
-                </Link>
-              ))}
+              {content.categories.map((cat, i) => {
+                const queryCategory = cat.title.replace(/ Tours/i, "");
+                return (
+                  <Link to={`/tours?category=${encodeURIComponent(queryCategory)}`} key={i} className="group relative rounded-3xl overflow-hidden aspect-[4/5] shadow-lg block">
+                    <img src={cat.image} alt={cat.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
+                      <h3 className="text-white text-3xl font-black uppercase tracking-tighter mb-2">{cat.title}</h3>
+                      <p className="text-brand-primary text-[10px] uppercase tracking-widest font-bold">{cat.count}</p>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>
