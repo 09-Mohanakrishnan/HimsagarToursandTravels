@@ -3,6 +3,7 @@ import { Plus, Trash2, Edit2, Camera, X, Check, ArrowLeft, MoreVertical, Loader2
 import { TravelEvent } from "../../types";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../lib/utils";
+import RichTextEditor from "../../components/RichTextEditor";
 
 export default function EventManager() {
   const [events, setEvents] = useState<TravelEvent[]>([]);
@@ -31,7 +32,7 @@ export default function EventManager() {
   };
 
   const handleCreateNew = () => {
-    setSelectedEvent({ title: "", description: "", date: "", price: "", location: "", category: "Spiritual", images: [], itinerary: [], visual_journey: [], is_featured: false });
+    setSelectedEvent({ title: "", description: "", date: "", price: "", location: "", category: "Spiritual", images: [], itinerary: [], visual_journey: [], is_featured: false, overview: "", places_covered: "", tour_cost_includes: "", note: "", tour_highlights: "", included: "", excluded: "" });
     setNewImagePreviews([]);
     setIsEditing(true);
   };
@@ -116,6 +117,15 @@ export default function EventManager() {
     formData.append("existing_images", JSON.stringify(selectedEvent!.images || []));
     formData.append("itinerary", JSON.stringify(selectedEvent!.itinerary || []));
     formData.append("visual_journey", JSON.stringify(selectedEvent!.visual_journey || []));
+    
+    // New Rich Text Fields
+    formData.append("overview", selectedEvent!.overview || "");
+    formData.append("places_covered", selectedEvent!.places_covered || "");
+    formData.append("tour_cost_includes", selectedEvent!.tour_cost_includes || "");
+    formData.append("note", selectedEvent!.note || "");
+    formData.append("tour_highlights", selectedEvent!.tour_highlights || "");
+    formData.append("included", selectedEvent!.included || selectedEvent!.included_excluded || "");
+    formData.append("excluded", selectedEvent!.excluded || "");
 
     // Attach new image files
     if (fileInputRef.current?.files) {
@@ -315,6 +325,74 @@ export default function EventManager() {
                   </div>
                   <span className="text-[10px] uppercase font-black text-gray-500 tracking-widest">Feature on Homepage</span>
                 </label>
+              </div>
+
+              {/* Detailed Content */}
+              <div className="bg-white border border-gray-100 p-8 rounded-3xl space-y-6 shadow-sm">
+                <h3 className="font-black text-gray-800 uppercase tracking-widest text-xs">Detailed Content</h3>
+                
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-black text-gray-400 tracking-widest">Overview</label>
+                  <RichTextEditor 
+                    value={selectedEvent?.overview || ""} 
+                    onChange={val => setSelectedEvent({ ...selectedEvent!, overview: val })} 
+                    placeholder="Provide a detailed overview of the tour..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-black text-gray-400 tracking-widest">Places Covered</label>
+                    <RichTextEditor 
+                      value={selectedEvent?.places_covered || ""} 
+                      onChange={val => setSelectedEvent({ ...selectedEvent!, places_covered: val })} 
+                      placeholder="e.g. Haridwar, Rishikesh..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-black text-gray-400 tracking-widest">Tour Highlights</label>
+                    <RichTextEditor 
+                      value={selectedEvent?.tour_highlights || ""} 
+                      onChange={val => setSelectedEvent({ ...selectedEvent!, tour_highlights: val })} 
+                      placeholder="Key highlights of the tour..."
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2 mb-6">
+                  <label className="text-[10px] uppercase font-black text-gray-400 tracking-widest">Tour Cost Includes</label>
+                  <RichTextEditor 
+                    value={selectedEvent?.tour_cost_includes || ""} 
+                    onChange={val => setSelectedEvent({ ...selectedEvent!, tour_cost_includes: val })} 
+                    placeholder="Details of what the cost includes..."
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Included</label>
+                    <RichTextEditor 
+                      value={selectedEvent?.included || selectedEvent?.included_excluded || ""} 
+                      onChange={val => setSelectedEvent({ ...selectedEvent!, included: val, included_excluded: "" })} 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Excluded</label>
+                    <RichTextEditor 
+                      value={selectedEvent?.excluded || ""} 
+                      onChange={val => setSelectedEvent({ ...selectedEvent!, excluded: val })} 
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-black text-gray-400 tracking-widest">Note</label>
+                  <RichTextEditor 
+                    value={selectedEvent?.note || ""} 
+                    onChange={val => setSelectedEvent({ ...selectedEvent!, note: val })} 
+                    placeholder="Any special notes or terms..."
+                  />
+                </div>
               </div>
 
               {/* Itinerary */}

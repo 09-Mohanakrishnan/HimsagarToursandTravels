@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
@@ -33,4 +34,128 @@ body::-webkit-scrollbar {
 
 .label-caps {
   @apply text-[10px] uppercase tracking-[0.4em] font-bold text-gray-400;
+}
+
+/* ─── Tiptap Editor Styles ─── */
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.ProseMirror {
+  min-height: 150px;
+}
+
+.ProseMirror ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+}
+
+.ProseMirror ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+}
+
+.ProseMirror a {
+  color: #c29d44;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ─── Rich Content Rendering (Frontend) ─── */
+.rich-content p {
+  margin-bottom: 0.75em;
+  line-height: 1.85;
+}
+
+.rich-content p:last-child {
+  margin-bottom: 0;
+}
+
+.rich-content strong {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.rich-content ul {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.rich-content ul li {
+  position: relative;
+  padding-left: 1.75rem;
+  margin-bottom: 0.6em;
+  line-height: 1.75;
+}
+
+.rich-content ul li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c29d44;
+  opacity: 0.7;
+}
+
+.rich-content ol {
+  padding-left: 1.5rem;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  counter-reset: item;
+  list-style: none;
+}
+
+.rich-content ol li {
+  position: relative;
+  padding-left: 0.75rem;
+  margin-bottom: 0.6em;
+  line-height: 1.75;
+  counter-increment: item;
+}
+
+.rich-content ol li::before {
+  content: counter(item) ".";
+  position: absolute;
+  left: -1.25rem;
+  font-weight: 800;
+  color: #c29d44;
+  font-size: 0.875rem;
+}
+
+.rich-content a {
+  color: #c29d44;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s;
+}
+
+.rich-content a:hover {
+  color: #b08d36;
+}
+
+/* Dark variant for Tour Highlights card */
+.rich-content-dark strong {
+  color: #ffffff;
+}
+
+.rich-content-dark ul li::before {
+  background: #c29d44;
+  opacity: 1;
+}
+
+.rich-content-dark a {
+  color: #c29d44;
+}
+
+.rich-content-dark a:hover {
+  color: #d4b050;
 }

@@ -10,6 +10,14 @@ export interface TravelEvent {
   images: string[];
   itinerary?: { day: number; title: string; description: string }[];
   visual_journey?: { image: string; title: string; description: string; location: string }[];
+  overview?: string;
+  places_covered?: string;
+  tour_cost_includes?: string;
+  note?: string;
+  tour_highlights?: string;
+  included?: string;
+  excluded?: string;
+  included_excluded?: string;
   is_featured: boolean;
   created_at: string;
 }

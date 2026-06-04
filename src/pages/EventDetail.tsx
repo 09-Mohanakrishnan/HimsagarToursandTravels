@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { MapPin, Calendar, Send, CheckCircle, Clock, Users, Route, Shield, Hotel, UtensilsCrossed, Bus, Ticket, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, Calendar, Send, CheckCircle, Clock, Users, Route, Shield, Hotel, UtensilsCrossed, Bus, Ticket, ChevronLeft, ChevronRight, Compass, Star, BadgeCheck, AlertCircle, CheckCheck, XCircle } from "lucide-react";
 import { TravelEvent } from "../types";
 
 // Tour-specific metadata keyed by title
@@ -159,8 +159,8 @@ export default function EventDetail() {
   if (!event) return <div className="h-screen flex items-center justify-center bg-white"><p className="text-2xl font-serif text-gray-400">Experience not found</p></div>;
 
   const meta = tourMeta[event.title] || defaultMeta;
-  const itineraryToDisplay = event.itinerary && event.itinerary.length > 0 
-    ? event.itinerary.map(item => ({ day: `Day ${item.day}`, title: item.title, desc: item.description })) 
+  const itineraryToDisplay = event.itinerary && event.itinerary.length > 0
+    ? event.itinerary.map(item => ({ day: `Day ${item.day}`, title: item.title, desc: item.description }))
     : meta.itinerary;
 
   return (
@@ -194,7 +194,14 @@ export default function EventDetail() {
               <div>
                 <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4">Overview</h4>
                 <h2 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight tracking-tighter mb-6">Experience the {event.title}</h2>
-                <p className="text-gray-500 leading-relaxed text-lg text-justify">{event.description}</p>
+                {event.overview ? (
+                  <div
+                    className="prose prose-sm lg:prose-base text-gray-500 leading-relaxed max-w-none text-justify"
+                    dangerouslySetInnerHTML={{ __html: event.overview }}
+                  />
+                ) : (
+                  <p className="text-gray-500 leading-relaxed text-lg text-justify">{event.description}</p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 {meta.highlights.map((h, i) => (
@@ -211,12 +218,12 @@ export default function EventDetail() {
               {/* Decorative elements */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl pointer-events-none"></div>
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-gray-900/5 rounded-full blur-3xl pointer-events-none"></div>
-              
+
               <div className="relative z-10 w-full max-w-md bg-white border border-gray-100 shadow-2xl shadow-gray-200/50 rounded-3xl p-8 overflow-hidden">
                 <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
                   <Route size={120} className="text-gray-900" />
                 </div>
-                
+
                 <h3 className="text-2xl font-black text-gray-900 mb-8 flex items-center gap-3">
                   <span className="w-10 h-10 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center">
                     <MapPin size={18} />
@@ -226,7 +233,7 @@ export default function EventDetail() {
 
                 <div className="relative pl-5 space-y-6 before:absolute before:inset-y-2 before:left-[27px] before:w-[2px] before:bg-gradient-to-b before:from-brand-primary before:to-gray-100">
                   {meta.route.split(' → ').map((stop, i) => (
-                    <motion.div 
+                    <motion.div
                       key={i}
                       initial={{ opacity: 0, x: 20 }}
                       whileInView={{ opacity: 1, x: 0 }}
@@ -260,12 +267,171 @@ export default function EventDetail() {
         </div>
       </section>
 
+      {/* Dynamic Detailed Content Sections */}
+      {(event.places_covered || event.tour_highlights || event.tour_cost_includes || event.included || event.included_excluded || event.excluded || event.note) && (
+        <section className="py-24 bg-white">
+          <div className="container mx-auto px-6 lg:px-12">
+            {/* Section Header */}
+            <div className="text-center mb-16">
+              <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4">Complete Details</h4>
+              <h2 className="text-4xl lg:text-5xl font-black text-gray-900 tracking-tighter">Everything You Need to Know</h2>
+            </div>
+
+            <div className="max-w-5xl mx-auto space-y-10">
+              {/* Places Covered */}
+              {event.places_covered && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="bg-white border border-gray-100 rounded-3xl p-8 lg:p-10 shadow-sm hover:shadow-lg transition-shadow duration-500"
+                >
+                  <div className="flex items-start gap-5 mb-6">
+                    <div className="w-12 h-12 bg-brand-primary/10 rounded-2xl flex items-center justify-center shrink-0">
+                      <Compass size={22} className="text-brand-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-brand-primary uppercase tracking-[0.3em] font-black mb-1">Destinations</p>
+                      <h3 className="text-2xl font-black text-gray-900 tracking-tighter">Places Covered</h3>
+                    </div>
+                  </div>
+                  <div className="pl-0 lg:pl-[68px]">
+                    <div className="prose prose-sm lg:prose-base max-w-none text-gray-600 leading-relaxed rich-content" dangerouslySetInnerHTML={{ __html: event.places_covered }} />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Tour Highlights */}
+              {event.tour_highlights && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.05 }}
+                  className="bg-gray-900 text-white rounded-3xl p-8 lg:p-10 shadow-xl relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+                  <div className="relative z-10">
+                    <div className="flex items-start gap-5 mb-6">
+                      <div className="w-12 h-12 bg-brand-primary/20 rounded-2xl flex items-center justify-center shrink-0">
+                        <Star size={22} className="text-brand-primary" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-brand-primary uppercase tracking-[0.3em] font-black mb-1">Highlights</p>
+                        <h3 className="text-2xl font-black tracking-tighter">Tour Highlights</h3>
+                      </div>
+                    </div>
+                    <div className="pl-0 lg:pl-[68px]">
+                      <div className="prose prose-sm lg:prose-base prose-invert max-w-none leading-relaxed rich-content rich-content-dark" dangerouslySetInnerHTML={{ __html: event.tour_highlights }} />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Included and Excluded — Parallel Containers */}
+              {(event.included || event.included_excluded || event.excluded) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm hover:shadow-lg transition-shadow duration-500 flex flex-col h-full"
+                  >
+                    <div className="flex items-start gap-4 mb-6">
+                      <div className="w-11 h-11 bg-green-50 rounded-2xl flex items-center justify-center shrink-0">
+                        <CheckCheck size={20} className="text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-green-600 uppercase tracking-[0.3em] font-black mb-1">Breakdown</p>
+                        <h3 className="text-xl font-black text-gray-900 tracking-tighter">Included</h3>
+                      </div>
+                    </div>
+                    <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed rich-content flex-grow" dangerouslySetInnerHTML={{ __html: event.included || event.included_excluded || "<p class='text-gray-400 italic text-sm'>No inclusions specified.</p>" }} />
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm hover:shadow-lg transition-shadow duration-500 flex flex-col h-full"
+                  >
+                    <div className="flex items-start gap-4 mb-6">
+                      <div className="w-11 h-11 bg-red-50 rounded-2xl flex items-center justify-center shrink-0">
+                        <XCircle size={20} className="text-red-600" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-red-600 uppercase tracking-[0.3em] font-black mb-1">Breakdown</p>
+                        <h3 className="text-xl font-black text-gray-900 tracking-tighter">Excluded</h3>
+                      </div>
+                    </div>
+                    <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed rich-content flex-grow" dangerouslySetInnerHTML={{ __html: event.excluded || "<p class='text-gray-400 italic text-sm'>No exclusions specified.</p>" }} />
+                  </motion.div>
+                </div>
+              )}
+
+              {event.tour_cost_includes && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.05 }}
+                  className="bg-brand-primary/10 border border-brand-primary/20 rounded-3xl p-8 lg:p-10 shadow-sm transition-shadow duration-500"
+                >
+                  <div className="flex items-start gap-4 mb-6">
+                    <div className="w-11 h-11 bg-white rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+                      <BadgeCheck size={20} className="text-brand-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-brand-primary uppercase tracking-[0.3em] font-black mb-1">Pricing</p>
+                      <h3 className="text-2xl font-black text-gray-900 tracking-tighter">Tour Cost Includes</h3>
+                    </div>
+                  </div>
+                  <div className="prose prose-sm lg:prose-base max-w-none text-gray-800 leading-relaxed rich-content" dangerouslySetInnerHTML={{ __html: event.tour_cost_includes }} />
+                </motion.div>
+              )}
+
+              {/* Note */}
+              {event.note && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.05 }}
+                  className="bg-gradient-to-br from-brand-primary/5 via-brand-primary/3 to-transparent rounded-3xl p-8 lg:p-10 border border-brand-primary/15 relative overflow-hidden"
+                >
+                  <div className="absolute -bottom-6 -right-6 opacity-[0.03] pointer-events-none">
+                    <AlertCircle size={180} className="text-brand-primary" />
+                  </div>
+                  <div className="relative z-10">
+                    <div className="flex items-start gap-5 mb-6">
+                      <div className="w-12 h-12 bg-brand-primary/15 rounded-2xl flex items-center justify-center shrink-0">
+                        <AlertCircle size={22} className="text-brand-primary" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-brand-primary uppercase tracking-[0.3em] font-black mb-1">Important</p>
+                        <h3 className="text-2xl font-black text-gray-900 tracking-tighter">Note</h3>
+                      </div>
+                    </div>
+                    <div className="pl-0 lg:pl-[68px]">
+                      <div className="prose prose-sm lg:prose-base max-w-none text-gray-700 leading-relaxed rich-content" dangerouslySetInnerHTML={{ __html: event.note }} />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Section 3: Visual Journey */}
       <section className="bg-gray-900 text-white overflow-hidden py-24 relative group/section">
         <div className="container mx-auto px-6 lg:px-12 text-center mb-16 relative">
           <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4">Visual Journey</h4>
           <h2 className="text-4xl lg:text-6xl font-black tracking-tighter">A Journey in Pictures</h2>
-          
+
           <div className="absolute right-6 lg:right-12 top-1/2 -translate-y-1/2 hidden md:flex gap-4">
             <button onClick={() => scroll("left")} className="p-3 bg-gray-800 rounded-full hover:bg-brand-primary transition-colors text-white">
               <ChevronLeft size={20} />
@@ -275,27 +441,27 @@ export default function EventDetail() {
             </button>
           </div>
         </div>
-        
+
         <div ref={scrollRef} className="flex overflow-x-auto snap-x snap-mandatory gap-6 px-6 lg:px-12 pb-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          {(event.visual_journey && event.visual_journey.length > 0 
-            ? event.visual_journey 
+          {(event.visual_journey && event.visual_journey.length > 0
+            ? event.visual_journey
             : event.images.slice(0, 4).map((img, i) => ({
-                image: img,
-                title: meta.highlights[i] || `Highlight ${i + 1}`,
-                description: `Experience the breathtaking beauty and cultural richness of ${meta.highlights[i] || 'this destination'}.`,
-                location: event.location
-              }))
+              image: img,
+              title: meta.highlights[i] || `Highlight ${i + 1}`,
+              description: `Experience the breathtaking beauty and cultural richness of ${meta.highlights[i] || 'this destination'}.`,
+              location: event.location
+            }))
           ).map((item, i) => (
             <div key={i} className="relative min-w-[85vw] md:min-w-[60vw] lg:min-w-[40vw] h-[60vh] rounded-3xl overflow-hidden group snap-center shrink-0 shadow-2xl">
               <div className="absolute inset-0 z-0">
                 <img src={item.image} className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-110" alt={item.title} />
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent" />
               </div>
-              
+
               <div className="absolute inset-x-0 bottom-0 p-8 z-10 flex flex-col justify-end h-full">
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }} 
-                  whileInView={{ opacity: 1, y: 0 }} 
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5 }}
                 >
@@ -348,7 +514,7 @@ export default function EventDetail() {
             {/* Inclusions */}
             <div>
               <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4">Package Details</h4>
-              <h2 className="text-4xl font-black tracking-tighter mb-10">What's Included</h2>
+              <h2 className="text-4xl font-black tracking-tighter mb-10">What  you  get </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {meta.inclusions.map((item, i) => {
                   const icons = [Hotel, UtensilsCrossed, Bus, Shield, Ticket, Users];

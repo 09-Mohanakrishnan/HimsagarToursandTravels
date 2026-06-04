@@ -94,7 +94,7 @@ export default function SubscriptionForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <label className="sr-only" htmlFor="subscription-email">Email</label>
         <input
           id="subscription-email"
