@@ -600,40 +600,12 @@ async function startServer() {
 
   // Events — admin CRUD
   app.post("/api/admin/events", authenticateToken, upload.array("images", 10), async (req, res) => {
-    const files = req.files as Express.Multer.File[];
-    const uploadPromises = (files || []).map(f => uploadBufferToCloudinary((f.buffer as Buffer), f.mimetype, f.originalname));
-    const imageUrls = files && files.length ? await Promise.all(uploadPromises) : [];
-    const existingImages = req.body.existing_images ? JSON.parse(req.body.existing_images) : [];
-    const event = await Event.create({
-      title: req.body.title,
-      description: req.body.description,
-      date: req.body.date,
-      price: req.body.price,
-      location: req.body.location,
-      category: req.body.category,
-      overview: req.body.overview,
-      places_covered: req.body.places_covered,
-      tour_cost_includes: req.body.tour_cost_includes,
-      note: req.body.note,
-      tour_highlights: req.body.tour_highlights,
-      included: req.body.included,
-      excluded: req.body.excluded,
-      is_featured: req.body.is_featured === "true",
-      images: [...existingImages, ...imageUrls],
-      itinerary: req.body.itinerary ? JSON.parse(req.body.itinerary) : [],
-      visual_journey: req.body.visual_journey ? JSON.parse(req.body.visual_journey) : [],
-    });
-    res.json({ ...event.toObject(), id: event._id });
-  });
-
-  app.put("/api/admin/events/:id", authenticateToken, upload.array("images", 10), async (req, res) => {
-    const files = req.files as Express.Multer.File[];
-    const uploadPromises = (files || []).map(f => uploadBufferToCloudinary((f.buffer as Buffer), f.mimetype, f.originalname));
-    const imageUrls = files && files.length ? await Promise.all(uploadPromises) : [];
-    const existingImages = req.body.existing_images ? JSON.parse(req.body.existing_images) : [];
-    const event = await Event.findByIdAndUpdate(
-      req.params.id,
-      {
+    try {
+      const files = req.files as Express.Multer.File[];
+      const uploadPromises = (files || []).map(f => uploadBufferToCloudinary((f.buffer as Buffer), f.mimetype, f.originalname));
+      const imageUrls = files && files.length ? await Promise.all(uploadPromises) : [];
+      const existingImages = req.body.existing_images ? (parseMaybeJSON(req.body.existing_images) || []) : [];
+      const event = await Event.create({
         title: req.body.title,
         description: req.body.description,
         date: req.body.date,
@@ -647,14 +619,52 @@ async function startServer() {
         tour_highlights: req.body.tour_highlights,
         included: req.body.included,
         excluded: req.body.excluded,
-        is_featured: req.body.is_featured === "true",
-        images: [...existingImages, ...imageUrls],
-        itinerary: req.body.itinerary ? JSON.parse(req.body.itinerary) : [],
-        visual_journey: req.body.visual_journey ? JSON.parse(req.body.visual_journey) : [],
-      },
-      { returnDocument: "after" }
-    );
-    res.json({ ...event!.toObject(), id: event!._id });
+        is_featured: req.body.is_featured === "true" || req.body.is_featured === true,
+        images: [...(Array.isArray(existingImages) ? existingImages : []), ...imageUrls],
+        itinerary: req.body.itinerary ? (parseMaybeJSON(req.body.itinerary) || []) : [],
+        visual_journey: req.body.visual_journey ? (parseMaybeJSON(req.body.visual_journey) || []) : [],
+      });
+      res.json({ ...event.toObject(), id: event._id });
+    } catch (error) {
+      console.error("Error creating event:", error);
+      res.status(500).json({ error: "Failed to create event." });
+    }
+  });
+
+  app.put("/api/admin/events/:id", authenticateToken, upload.array("images", 10), async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      const uploadPromises = (files || []).map(f => uploadBufferToCloudinary((f.buffer as Buffer), f.mimetype, f.originalname));
+      const imageUrls = files && files.length ? await Promise.all(uploadPromises) : [];
+      const existingImages = req.body.existing_images ? (parseMaybeJSON(req.body.existing_images) || []) : [];
+      const event = await Event.findByIdAndUpdate(
+        req.params.id,
+        {
+          title: req.body.title,
+          description: req.body.description,
+          date: req.body.date,
+          price: req.body.price,
+          location: req.body.location,
+          category: req.body.category,
+          overview: req.body.overview,
+          places_covered: req.body.places_covered,
+          tour_cost_includes: req.body.tour_cost_includes,
+          note: req.body.note,
+          tour_highlights: req.body.tour_highlights,
+          included: req.body.included,
+          excluded: req.body.excluded,
+          is_featured: req.body.is_featured === "true" || req.body.is_featured === true,
+          images: [...(Array.isArray(existingImages) ? existingImages : []), ...imageUrls],
+          itinerary: req.body.itinerary ? (parseMaybeJSON(req.body.itinerary) || []) : [],
+          visual_journey: req.body.visual_journey ? (parseMaybeJSON(req.body.visual_journey) || []) : [],
+        },
+        { new: true }
+      );
+      res.json({ ...event!.toObject(), id: event!._id });
+    } catch (error) {
+      console.error("Error updating event:", error);
+      res.status(500).json({ error: "Failed to update event details." });
+    }
   });
 
   app.delete("/api/admin/events/:id", authenticateToken, async (req, res) => {
