@@ -130,9 +130,9 @@ const authenticateToken = (req: any, res: any, next: any) => {
 // ─── File Upload ──────────────────────────────────────────────────────────────
 
 cloudinary.config({
-  cloud_name: process.env.cloud_name,
+  cloud_name: process.env.CLOUD_NAME || process.env.cloud_name,
   api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRETE
+  api_secret: process.env.API_SECRET || process.env.API_SECRETE
 });
 
 // Use multer memory storage and upload buffers to Cloudinary manually.
