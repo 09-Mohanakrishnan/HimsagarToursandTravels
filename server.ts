@@ -661,9 +661,9 @@ async function startServer() {
         { new: true }
       );
       res.json({ ...event!.toObject(), id: event!._id });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating event:", error);
-      res.status(500).json({ error: "Failed to update event details." });
+      res.status(500).json({ error: "Failed to update event details.", details: error.message, stack: error.stack });
     }
   });
 
