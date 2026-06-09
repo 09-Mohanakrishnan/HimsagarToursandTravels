@@ -403,7 +403,7 @@ async function startServer() {
     console.log("Seeded initial SiteContent.");
   } else {
     // Patch existing document with missing fields
-    const existingContent = await SiteContent.findOne();
+    const existingContent = await SiteContent.findOne() as any;
     if (existingContent && (!existingContent.tours_trust_indicators || existingContent.tours_trust_indicators.length === 0)) {
       existingContent.instagram_moments = [
         "https://images.unsplash.com/photo-1564507592208-0270e30495f4?auto=format&fit=crop&q=80&w=600",

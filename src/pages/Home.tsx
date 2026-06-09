@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowRight, Star, MapPin, Calendar, Compass, DollarSign, ShieldCheck, HeartPulse, Send, CheckCircle2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { ArrowRight, Star, MapPin, Calendar, Compass, DollarSign, ShieldCheck, HeartPulse, Send, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { TravelEvent, SiteContent } from "../types";
 import SubscriptionForm from "../components/SubscriptionForm";
@@ -182,15 +182,15 @@ export default function Home() {
               <p className="mt-6 text-gray-500 font-medium">We ensure that your comfort and safety are never compromised, even in the most remote destinations.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {content.essentials.map((feature, i) => {
-                const icons = [<ShieldCheck size={32} />, <HeartPulse size={32} />, <Star size={32} />];
+                const icons = [<ShieldCheck size={28} />, <HeartPulse size={28} />, <Star size={28} />, <Compass size={28} />];
                 return (
-                  <div key={i} className="bg-white p-10 rounded-3xl border border-gray-100 shadow-sm text-center flex flex-col items-center hover:shadow-xl transition-shadow group">
-                    <div className="w-20 h-20 bg-brand-primary/10 rounded-full flex items-center justify-center text-brand-primary mb-6 group-hover:scale-110 transition-transform">
-                      {icons[i % 3]}
+                  <div key={i} className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm text-center flex flex-col items-center hover:shadow-xl transition-shadow group">
+                    <div className="w-16 h-16 bg-brand-primary/10 rounded-full flex items-center justify-center text-brand-primary mb-5 group-hover:scale-110 transition-transform">
+                      {icons[i % 4]}
                     </div>
-                    <h3 className="text-xl font-bold text-brand-navy mb-4">{feature.title}</h3>
+                    <h3 className="text-lg font-bold text-brand-navy mb-3">{feature.title}</h3>
                     <p className="text-gray-500 text-sm leading-relaxed">{feature.desc}</p>
                   </div>
                 )
@@ -264,8 +264,8 @@ export default function Home() {
           <div className="container mx-auto px-6 relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
               <div className="space-y-12">
-                <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black">Signature Philosophy</h4>
-                <h2 className="text-4xl md:text-6xl lg:text-8xl font-serif font-black tracking-tighter leading-[1.1] md:leading-[0.9]">Why We Are Chosen Since 1985</h2>
+                <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black">Why We Are</h4>
+                <h2 className="text-4xl md:text-6xl lg:text-8xl font-serif font-black tracking-tighter leading-[1.1] md:leading-[0.9]"> Chosen Since 1995</h2>
                 <div className="space-y-10">
                   {content.philosophy.map((item, i) => (
                     <div key={i} className="flex gap-6 items-start">
@@ -352,41 +352,104 @@ export default function Home() {
         </section>
       )}
 
-      {/* 9. Testimonials Section */}
-      {content?.testimonials && content.testimonials.length > 0 && (
-        <section className="py-32 bg-white border-y border-gray-100">
-          <div className="container mx-auto px-6">
-            <div className="max-w-4xl mx-auto text-center mb-20">
-              <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-6">Voice of Explorers</h4>
-              <h2 className="text-5xl md:text-7xl font-serif font-black tracking-tighter text-gray-900">Hear It From Our <br />Happy Travelers</h2>
-            </div>
+      {/* 9. Testimonials Section — Carousel */}
+      {content?.testimonials && content.testimonials.length > 0 && (() => {
+        const TestimonialsCarousel = () => {
+          const [currentSlide, setCurrentSlide] = useState(0);
+          const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
+          const testimonials = content!.testimonials!;
+          const desktopVisible = 3;
+          const maxSlide = Math.max(0, testimonials.length - desktopVisible);
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-              {content.testimonials.map((testimonial, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="bg-white p-12 rounded-[3rem] border border-gray-100 shadow-sm flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex gap-1 text-brand-primary mb-6">
-                      {[1, 2, 3, 4, 5].map(star => <Star key={star} size={14} fill="currentColor" />)}
+          const startAutoplay = useCallback(() => {
+            if (autoplayRef.current) clearInterval(autoplayRef.current);
+            autoplayRef.current = setInterval(() => {
+              setCurrentSlide(prev => prev >= maxSlide ? 0 : prev + 1);
+            }, 5000);
+          }, [maxSlide]);
+
+          useEffect(() => {
+            startAutoplay();
+            return () => { if (autoplayRef.current) clearInterval(autoplayRef.current); };
+          }, [startAutoplay]);
+
+          const goTo = (dir: 'prev' | 'next') => {
+            setCurrentSlide(prev => dir === 'next' ? (prev >= maxSlide ? 0 : prev + 1) : (prev <= 0 ? maxSlide : prev - 1));
+            startAutoplay();
+          };
+
+          return (
+            <section className="py-32 bg-white border-y border-gray-100 overflow-hidden"
+              onMouseEnter={() => { if (autoplayRef.current) clearInterval(autoplayRef.current); }}
+              onMouseLeave={() => startAutoplay()}
+            >
+              <div className="container mx-auto px-6">
+                <div className="max-w-4xl mx-auto text-center mb-20">
+                  <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-6">Voice of Explorers</h4>
+                  <h2 className="text-5xl md:text-7xl font-serif font-black tracking-tighter text-gray-900">Hear It From Our <br />Happy Travelers</h2>
+                </div>
+
+                <div className="relative">
+                  {/* Navigation Arrows */}
+                  <button
+                    onClick={() => goTo('prev')}
+                    className="absolute -left-4 md:-left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:text-brand-primary hover:border-brand-primary shadow-lg transition-all"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button
+                    onClick={() => goTo('next')}
+                    className="absolute -right-4 md:-right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:text-brand-primary hover:border-brand-primary shadow-lg transition-all"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+
+                  {/* Carousel Track */}
+                  <div className="overflow-hidden">
+                    <div
+                      className="flex transition-transform duration-500 ease-in-out"
+                      style={{ transform: `translateX(-${currentSlide * (100 / desktopVisible)}%)` }}
+                    >
+                      {testimonials.map((testimonial, i) => (
+                        <div
+                          key={i}
+                          className="w-full md:w-1/2 lg:w-1/3 flex-shrink-0 px-4"
+                        >
+                          <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col justify-between h-full hover:shadow-xl transition-shadow">
+                            <div>
+                              <div className="flex gap-1 text-brand-primary mb-6">
+                                {[1, 2, 3, 4, 5].map(star => <Star key={star} size={14} fill="currentColor" />)}
+                              </div>
+                              <p className="text-lg font-serif text-gray-600 leading-relaxed mb-8">"{testimonial.text}"</p>
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-black uppercase tracking-tighter text-gray-900">{testimonial.name}</h4>
+                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{testimonial.location}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <p className="text-lg font-serif text-gray-600 leading-relaxed mb-8">"{testimonial.text}"</p>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-black uppercase tracking-tighter text-gray-900">{testimonial.name}</h4>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{testimonial.location}</p>
+
+                  {/* Dots */}
+                  <div className="flex justify-center gap-2 mt-10">
+                    {Array.from({ length: maxSlide + 1 }).map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => { setCurrentSlide(i); startAutoplay(); }}
+                        className={`h-2 rounded-full transition-all duration-300 ${i === currentSlide ? 'w-8 bg-brand-primary' : 'w-2 bg-gray-200 hover:bg-gray-300'
+                          }`}
+                      />
+                    ))}
                   </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+                </div>
+              </div>
+            </section>
+          );
+        };
+        return <TestimonialsCarousel />;
+      })()}
 
       {/* 10. The Travel Manifest (Newsletter) */}
       <section className="py-24 bg-brand-navy border-t border-brand-primary/20 relative overflow-hidden">
@@ -409,7 +472,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 11. Call to Action */}
+      {/* 11. Call to Action
       <section className="py-40 container mx-auto px-6">
         <div className="relative rounded-[4rem] overflow-hidden bg-brand-primary p-12 md:p-32 text-center shadow-2xl shadow-brand-primary/20">
           <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-indigo-500/20 rounded-full blur-[120px]" />
@@ -428,7 +491,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 }

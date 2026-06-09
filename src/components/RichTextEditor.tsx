@@ -142,7 +142,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Write s
       // and prevent '<p></p>' loop
       const currentHtml = editor.getHTML();
       if (currentHtml !== value && value) {
-        editor.commands.setContent(value, false);
+        editor.commands.setContent(value, { emitUpdate: false });
       }
     }
   }

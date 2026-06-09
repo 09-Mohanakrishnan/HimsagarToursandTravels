@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { MapPin, Calendar, Send, CheckCircle, Clock, Users, Route, Shield, Hotel, UtensilsCrossed, Bus, Ticket, ChevronLeft, ChevronRight, Compass, Star, BadgeCheck, AlertCircle, CheckCheck, XCircle } from "lucide-react";
+import { MapPin, Calendar, Send, CheckCircle, Clock, Users, Route, Shield, Hotel, UtensilsCrossed, Bus, Ticket, ChevronLeft, ChevronRight, ChevronDown, Compass, Star, BadgeCheck, AlertCircle, CheckCheck, XCircle } from "lucide-react";
 import { TravelEvent } from "../types";
 
 // Tour-specific metadata keyed by title
@@ -111,6 +111,85 @@ const defaultMeta = {
   inclusions: ["Hotel Accommodation", "Daily Meals", "Ground Transport", "Guided Sightseeing", "Entry Fees", "Travel Insurance"],
   route: "Departure City → Destination → Return",
 };
+
+/* ── Itinerary Accordion Component ── */
+function ItineraryAccordion({ itinerary, route }: { itinerary: { day: string; title: string; desc: string }[]; route: string }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(0); // first day open by default
+
+  return (
+    <section className="py-24 bg-white">
+      <div className="container mx-auto px-6 lg:px-12">
+        <div className="max-w-4xl">
+          <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4">Day by Day</h4>
+          <h2 className="text-4xl lg:text-5xl font-black text-gray-900 tracking-tighter mb-4">Detailed Itinerary</h2>
+          <p className="text-[10px] text-brand-primary/80 uppercase tracking-widest font-bold mb-12"><Route size={12} className="inline mr-2" />{route}</p>
+        </div>
+
+        <div className="max-w-3xl">
+          {itinerary.map((item, i) => {
+            const isOpen = openIndex === i;
+            const isLast = i === itinerary.length - 1;
+
+            return (
+              <div key={i} className="relative">
+                {/* Timeline Connector */}
+                <div className="absolute left-5 top-0 bottom-0 flex flex-col items-center pointer-events-none z-0">
+                  {/* Dot */}
+                  <div className={`w-10 h-10 rounded-full border-4 flex items-center justify-center shrink-0 transition-all duration-300 mt-6 ${
+                    isOpen
+                      ? 'bg-brand-primary border-brand-primary/20 text-white'
+                      : 'bg-white border-gray-200 text-gray-400'
+                  }`}>
+                    <span className="text-[10px] font-black">{String(i + 1).padStart(2, "0")}</span>
+                  </div>
+                  {/* Line */}
+                  {!isLast && (
+                    <div className="w-[2px] flex-1 bg-gradient-to-b from-gray-200 to-gray-100 my-0" />
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="ml-16 mb-2">
+                  <button
+                    onClick={() => setOpenIndex(isOpen ? null : i)}
+                    className={`w-full text-left p-6 rounded-2xl border transition-all duration-300 flex items-center justify-between gap-4 group ${
+                      isOpen
+                        ? 'bg-white border-brand-primary/20 shadow-lg shadow-brand-primary/5'
+                        : 'bg-gray-50 border-gray-100 hover:bg-white hover:border-gray-200 hover:shadow-md'
+                    }`}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-[10px] uppercase tracking-widest font-black mb-1 transition-colors ${isOpen ? 'text-brand-primary' : 'text-gray-400'}`}>
+                        {item.day}
+                      </p>
+                      <h4 className="text-lg font-black text-gray-900 truncate">{item.title}</h4>
+                    </div>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
+                      isOpen ? 'bg-brand-primary/10 text-brand-primary rotate-180' : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      <ChevronDown size={16} />
+                    </div>
+                  </button>
+
+                  {/* Expanded Content */}
+                  <div
+                    className={`overflow-hidden transition-all duration-400 ease-in-out ${
+                      isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+                    }`}
+                  >
+                    <div className="p-6 pb-2">
+                      <p className="text-sm text-gray-500 leading-relaxed whitespace-pre-line">{item.desc}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function EventDetail() {
   const { id } = useParams();
@@ -481,31 +560,8 @@ export default function EventDetail() {
         </div>
       </section>
 
-      {/* Section 4: Itinerary */}
-      <section className="py-24 bg-white">
-        <div className="container mx-auto px-6 lg:px-12">
-          <div className="max-w-4xl">
-            <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-4">Day by Day</h4>
-            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 tracking-tighter mb-4">Detailed Itinerary</h2>
-            <p className="text-[10px] text-brand-primary/80 uppercase tracking-widest font-bold mb-12"><Route size={12} className="inline mr-2" />{meta.route}</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {itineraryToDisplay.map((item, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-                className="p-8 bg-gray-50 rounded-3xl border border-gray-100 hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="w-10 h-10 bg-brand-primary text-white rounded-full flex items-center justify-center text-xs font-black">{String(i + 1).padStart(2, "0")}</span>
-                  <div>
-                    <p className="text-[10px] text-brand-primary uppercase tracking-widest font-black">{item.day}</p>
-                    <h4 className="text-lg font-black text-gray-900">{item.title}</h4>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-500 leading-relaxed pl-[52px] whitespace-pre-line">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Section 4: Itinerary — Accordion */}
+      <ItineraryAccordion itinerary={itineraryToDisplay} route={meta.route} />
 
       {/* Section 5: Inclusions + Booking */}
       <section className="py-24 bg-brand-navy text-white">
