@@ -164,15 +164,15 @@ export default function About() {
                 Connect with our team
               </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-16 lg:gap-24">
               {content.about_team.map((person, i) => (
                 <div key={i} className="group">
-                  <div className="aspect-square rounded-[3rem] overflow-hidden mb-6 relative">
+                  <div className="aspect-[3/4] rounded-[4rem] overflow-hidden mb-8 relative shadow-xl">
                     <img src={person.img} alt={person.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
-                    <div className="absolute inset-0 bg-brand-primary/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 bg-brand-primary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <h3 className="text-2xl font-black tracking-tighter text-gray-900">{person.name}</h3>
-                  <p className="text-brand-primary text-[10px] uppercase tracking-widest font-bold">{person.role}</p>
+                  <h3 className="text-4xl font-serif font-black tracking-tighter text-gray-900 mb-2">{person.name}</h3>
+                  <p className="text-brand-primary text-xs uppercase tracking-[0.3em] font-bold">{person.role}</p>
                 </div>
               ))}
             </div>

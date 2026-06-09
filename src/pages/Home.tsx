@@ -35,6 +35,15 @@ export default function Home() {
     ]).then(([eventsData, contentData]) => {
       const normalized = eventsData.map((e: any) => ({ ...e, id: e._id || e.id }));
       setFeaturedEvents(normalized.filter((e: TravelEvent) => e.is_featured).slice(0, 3));
+      
+      if (contentData?.categories) {
+        contentData.categories = contentData.categories.map((cat: any) => {
+          const queryCategory = cat.title.replace(/ Tours/i, "").trim().toLowerCase();
+          const count = normalized.filter((e: any) => e.category?.toLowerCase() === queryCategory).length;
+          return { ...cat, count: `${count} Tours` };
+        });
+      }
+
       setContent(contentData);
       setLoading(false);
     });

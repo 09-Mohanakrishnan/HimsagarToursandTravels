@@ -297,7 +297,7 @@ async function startServer() {
   // Seed SiteContent if empty
   const contentCount = await SiteContent.countDocuments();
   if (contentCount === 0) {
-  await SiteContent.create({
+    await SiteContent.create({
       hero_images: [
         "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=2000",
         "https://images.unsplash.com/photo-1626621331169-5f34be280ed9?auto=format&fit=crop&q=80&w=2000",
@@ -412,7 +412,7 @@ async function startServer() {
         "https://images.unsplash.com/photo-1595815771614-ade9d652a65d?auto=format&fit=crop&q=80&w=600",
         "https://images.unsplash.com/photo-1506461883276-594a12b11cf3?auto=format&fit=crop&q=80&w=600"
       ];
-      
+
       existingContent.tours_trust_indicators = [
         { value: "30+", label: "Years of Experience" },
         { value: "15k+", label: "Happy Travelers" },
@@ -440,9 +440,8 @@ async function startServer() {
         { region: "Africa", count: "15+ Destinations" }
       ];
       existingContent.about_team = [
-        { name: "Vikram Singh", role: "Founder & Chief Explorer", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=600" },
-        { name: "Sarah Jenkins", role: "Head of Global Curation", img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=600" },
-        { name: "Arjun Mehta", role: "Director of Operations", img: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=600" }
+        { name: "Satyamurthy", role: "Founder", img: "/images/PHOTO-2026-06-09-19-16-42.jpg" },
+        { name: "Uma Satyamurthy", role: "Director", img: "/images/PHOTO-2026-06-09-19-16-42 2.jpg" }
       ];
 
       existingContent.site_name = existingContent.site_name || "Himsagar Travels";
@@ -556,7 +555,7 @@ async function startServer() {
     try {
       const payload = req.body;
       let content = await SiteContent.findOne().sort({ created_at: -1 });
-      
+
       const updateData = {
         hero_images: parseMaybeJSON(payload.hero_images) ?? content?.hero_images,
         categories: parseMaybeJSON(payload.categories) ?? content?.categories,
@@ -668,20 +667,20 @@ async function startServer() {
     const { event_id, name, email, phone, message } = req.body;
     let event_title = "";
     const validEventId = event_id && event_id.trim() !== "" ? event_id : undefined;
-    
+
     try {
       if (validEventId) {
         const ev = await Event.findById(validEventId);
         event_title = ev?.title || "";
       }
-      
-      const inquiry = await Inquiry.create({ 
-        event_id: validEventId, 
-        event_title, 
-        name, 
-        email, 
-        phone, 
-        message 
+
+      const inquiry = await Inquiry.create({
+        event_id: validEventId,
+        event_title,
+        name,
+        email,
+        phone,
+        message
       });
       res.json({ ...inquiry.toObject(), id: inquiry._id });
     } catch (err) {

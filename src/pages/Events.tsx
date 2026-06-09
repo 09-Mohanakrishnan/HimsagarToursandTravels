@@ -8,7 +8,7 @@ import { TravelEvent, SiteContent } from "../types";
 export default function Events() {
   const [searchParams] = useSearchParams();
   const initialCategory = searchParams.get("category") || "All";
-  
+
   const [events, setEvents] = useState<TravelEvent[]>([]);
   const [content, setContent] = useState<SiteContent | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,11 +34,11 @@ export default function Events() {
   }, []);
 
   const categories = ["All", ...new Set(events.map(e => e.category).filter(Boolean))];
-  
+
   const filteredEvents = events.filter(e => {
     const matchesCategory = category === "All" || e.category === category;
-    const matchesSearch = e.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          e.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = e.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      e.location.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -60,21 +60,20 @@ export default function Events() {
               <button
                 key={cat}
                 onClick={() => setCategory(cat)}
-                className={`text-[10px] uppercase tracking-[0.3em] font-black transition-all ${
-                  category === cat ? "text-brand-primary border-b-2 border-brand-primary" : "text-gray-300 hover:text-brand-dark"
-                }`}
+                className={`text-[10px] uppercase tracking-[0.3em] font-black transition-all ${category === cat ? "text-brand-primary border-b-2 border-brand-primary" : "text-gray-400 hover:text-brand-dark"
+                  }`}
               >
                 {cat}
               </button>
             ))}
           </div>
-          
+
           <div className="relative w-full md:w-80 group">
-            <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-brand-primary transition-colors" size={16} />
-            <input 
-              type="text" 
+            <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-brand-primary transition-colors" size={16} />
+            <input
+              type="text"
               placeholder="SEARCH MANIFEST"
-              className="w-full bg-transparent border-b border-gray-100 py-3 pl-8 pr-4 outline-none focus:border-brand-primary transition-all text-xs uppercase tracking-widest text-gray-700"
+              className="w-full bg-transparent border-b border-gray-100 py-3 pl-8 pr-4 outline-none focus:border-brand-primary transition-all text-xs uppercase tracking-widest text-gray-900"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -84,7 +83,7 @@ export default function Events() {
         {/* Results */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-100 border border-gray-100">
-            {[1,2,3,4,5,6].map(i => (
+            {[1, 2, 3, 4, 5, 6].map(i => (
               <div key={i} className="h-96 bg-white animate-pulse" />
             ))}
           </div>
@@ -99,10 +98,10 @@ export default function Events() {
                 className="group flex flex-col"
               >
                 <Link to={`/events/${event.id}`} className="block overflow-hidden mb-8 aspect-[4/5] relative rounded-2xl border border-gray-100">
-                  <img 
-                    src={event.images[0] || "https://images.unsplash.com/photo-1540541338287-41700207dee6"} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                    alt={event.title} 
+                  <img
+                    src={event.images[0] || "https://images.unsplash.com/photo-1540541338287-41700207dee6"}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    alt={event.title}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                   <div className="absolute bottom-6 left-6 right-6">
@@ -110,18 +109,18 @@ export default function Events() {
                     <p className="text-3xl font-serif font-black tracking-tighter drop-shadow-xl text-white">{event.title}</p>
                   </div>
                 </Link>
-                
+
                 <div className="flex flex-col gap-4 px-2">
-                  <div className="flex items-center gap-6 text-[9px] uppercase tracking-[0.3em] font-bold text-gray-300">
+                  <div className="flex items-center gap-6 text-[9px] uppercase tracking-[0.3em] font-bold text-gray-600">
                     <span className="flex items-center gap-2">
                       <MapPin size={12} className="text-brand-primary" />
                       {event.location}
                     </span>
                     <span>{event.date.split(',')[0]}</span>
                   </div>
-                  
+
                   <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-6">
-                    <span className="text-2xl font-light tracking-tighter text-gray-700">₹{event.price}</span>
+                    <span className="text-3xl font-black text-brand-navy">₹{event.price}</span>
                     <Link to={`/events/${event.id}`} className="text-[9px] uppercase tracking-[0.4em] font-black flex items-center gap-3 text-brand-primary hover:text-brand-dark transition-colors underline underline-offset-8">
                       Inquire <ArrowRight size={14} />
                     </Link>
@@ -133,7 +132,7 @@ export default function Events() {
         ) : (
           <div className="py-32 text-center">
             <h3 className="text-3xl font-serif text-gray-300">No experiences found matching your criteria.</h3>
-            <button 
+            <button
               onClick={() => { setCategory("All"); setSearchTerm(""); }}
               className="mt-6 text-brand-primary uppercase tracking-widest text-sm font-bold border-b border-brand-primary pb-1"
             >
@@ -149,7 +148,7 @@ export default function Events() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
               <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black">Bespoke Curation</h4>
-              <h2 className="text-4xl md:text-6xl font-serif font-black tracking-tighter text-white">Can't Find Your <br/>Perfect Journey?</h2>
+              <h2 className="text-4xl md:text-6xl font-serif font-black tracking-tighter text-white">Can't Find Your <br />Perfect Journey?</h2>
               <p className="text-white/60 leading-relaxed font-light max-w-lg">
                 Our travel designers specialize in crafting tailor-made itineraries that match your exact specifications. From private helicopter tours to exclusive temple access, let us design your dream expedition.
               </p>
