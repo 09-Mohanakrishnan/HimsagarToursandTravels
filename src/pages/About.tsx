@@ -182,7 +182,7 @@ export default function About() {
                       <Plane className="text-brand-primary" size={24} />
                     </div>
                     <div>
-                      <p className="text-2xl font-serif font-black tracking-tighter text-gray-900">15+ Years</p>
+                      <p className="text-2xl font-serif font-black tracking-tighter text-gray-900">30+ Years</p>
                       <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 font-bold">of Excellence</p>
                     </div>
                   </div>
