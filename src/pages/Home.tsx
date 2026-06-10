@@ -299,8 +299,8 @@ export default function Home() {
                     <div key={i} className="flex gap-6 items-start">
                       <div className="w-10 h-10 border border-brand-primary/40 rounded-full flex items-center justify-center shrink-0 text-brand-primary font-serif font-black">0{i + 1}</div>
                       <div>
-                        <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-                        <p className="text-white/40 text-sm font-medium leading-loose uppercase tracking-widest">{item.desc}</p>
+                        <h3 className="text-xl font-bold mb-1">{item.title}</h3>
+                        <p className="text-white/40 text-sm font-medium leading-loose tracking-widest">{item.desc}</p>
                       </div>
                     </div>
                   ))}

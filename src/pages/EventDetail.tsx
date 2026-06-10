@@ -135,11 +135,10 @@ function ItineraryAccordion({ itinerary, route }: { itinerary: { day: string; ti
                 {/* Timeline Connector */}
                 <div className="absolute left-5 top-0 bottom-0 flex flex-col items-center pointer-events-none z-0">
                   {/* Dot */}
-                  <div className={`w-10 h-10 rounded-full border-4 flex items-center justify-center shrink-0 transition-all duration-300 mt-6 ${
-                    isOpen
-                      ? 'bg-brand-primary border-brand-primary/20 text-white'
-                      : 'bg-white border-gray-200 text-gray-400'
-                  }`}>
+                  <div className={`w-10 h-10 rounded-full border-4 flex items-center justify-center shrink-0 transition-all duration-300 mt-6 ${isOpen
+                    ? 'bg-brand-primary border-brand-primary/20 text-white'
+                    : 'bg-white border-gray-200 text-gray-400'
+                    }`}>
                     <span className="text-[10px] font-black">{String(i + 1).padStart(2, "0")}</span>
                   </div>
                   {/* Line */}
@@ -152,11 +151,10 @@ function ItineraryAccordion({ itinerary, route }: { itinerary: { day: string; ti
                 <div className="ml-16 mb-2">
                   <button
                     onClick={() => setOpenIndex(isOpen ? null : i)}
-                    className={`w-full text-left p-6 rounded-2xl border transition-all duration-300 flex items-center justify-between gap-4 group ${
-                      isOpen
-                        ? 'bg-white border-brand-primary/20 shadow-lg shadow-brand-primary/5'
-                        : 'bg-gray-50 border-gray-100 hover:bg-white hover:border-gray-200 hover:shadow-md'
-                    }`}
+                    className={`w-full text-left p-6 rounded-2xl border transition-all duration-300 flex items-center justify-between gap-4 group ${isOpen
+                      ? 'bg-white border-brand-primary/20 shadow-lg shadow-brand-primary/5'
+                      : 'bg-gray-50 border-gray-100 hover:bg-white hover:border-gray-200 hover:shadow-md'
+                      }`}
                   >
                     <div className="flex-1 min-w-0">
                       <p className={`text-[10px] uppercase tracking-widest font-black mb-1 transition-colors ${isOpen ? 'text-brand-primary' : 'text-gray-400'}`}>
@@ -164,18 +162,16 @@ function ItineraryAccordion({ itinerary, route }: { itinerary: { day: string; ti
                       </p>
                       <h4 className="text-lg font-black text-gray-900 truncate">{item.title}</h4>
                     </div>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
-                      isOpen ? 'bg-brand-primary/10 text-brand-primary rotate-180' : 'bg-gray-100 text-gray-400'
-                    }`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${isOpen ? 'bg-brand-primary/10 text-brand-primary rotate-180' : 'bg-gray-100 text-gray-400'
+                      }`}>
                       <ChevronDown size={16} />
                     </div>
                   </button>
 
                   {/* Expanded Content */}
                   <div
-                    className={`overflow-hidden transition-all duration-400 ease-in-out ${
-                      isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
-                    }`}
+                    className={`overflow-hidden transition-all duration-400 ease-in-out ${isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+                      }`}
                   >
                     <div className="p-6 pb-2">
                       <p className="text-sm text-gray-500 leading-relaxed whitespace-pre-line">{item.desc}</p>
@@ -648,12 +644,14 @@ export default function EventDetail() {
 
       {/* Section 6: CTA */}
       <section className="py-20 bg-white">
-        <div className="container mx-auto px-6 lg:px-12 text-center">
-          <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-gray-900 mb-4">Explore More Tours</h2>
-          <p className="text-gray-400 text-sm uppercase tracking-widest font-bold mb-8">Discover our full collection of curated journeys</p>
-          <Link to="/tours" className="inline-block px-12 py-5 bg-brand-navy text-white font-black text-xs uppercase tracking-widest hover:bg-brand-dark transition-all rounded-xl shadow-lg">
-            View All Tours
-          </Link>
+        <div className="container mx-auto px-6 lg:px-12">
+          <div className="max-w-4xl mx-auto bg-brand-primary/10 border border-brand-primary/20 rounded-3xl p-10 md:p-16 text-center shadow-sm">
+            <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-gray-900 mb-4">Explore More Tours</h2>
+            <p className="text-gray-500 text-sm tracking-widest font-bold mb-8">Discover our full collection of curated journeys</p>
+            <Link to="/tours" className="inline-block px-12 py-5 bg-brand-navy text-white font-black text-xs uppercase tracking-widest hover:bg-brand-dark transition-all rounded-xl shadow-lg">
+              View All Tours
+            </Link>
+          </div>
         </div>
       </section>
     </div>

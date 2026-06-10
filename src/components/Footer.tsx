@@ -64,7 +64,7 @@ export default function Footer() {
               </a>
               {/* Facebook */}
               <a
-                href="https://www.facebook.com/himsagar.travels.3/"
+                href="https://www.facebook.com/himsagartravelsofficial/"
                 target="_blank"
                 rel="noreferrer"
                 className="w-10 h-10 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-white/50 hover:text-brand-primary hover:border-brand-primary transition-all"
