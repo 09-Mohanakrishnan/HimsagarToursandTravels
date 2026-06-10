@@ -8,17 +8,26 @@ import { TravelEvent, SiteContent } from "../types";
 export default function Events() {
   const [searchParams] = useSearchParams();
   const initialCategory = searchParams.get("category") || "All";
+  const initialSearch = searchParams.get("search") || "";
 
   const [events, setEvents] = useState<TravelEvent[]>([]);
   const [content, setContent] = useState<SiteContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState(initialCategory);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
 
   useEffect(() => {
     const cat = searchParams.get("category");
     if (cat) {
       setCategory(cat);
+    } else {
+      setCategory("All");
+    }
+    const searchVal = searchParams.get("search");
+    if (searchVal !== null) {
+      setSearchTerm(searchVal);
+    } else {
+      setSearchTerm("");
     }
   }, [searchParams]);
 
@@ -43,16 +52,55 @@ export default function Events() {
   });
 
   return (
-    <div className="pt-40 min-h-screen bg-[#fcfdfd]">
-      <div className="container mx-auto px-12">
-        <header className="mb-20">
-          <h4 className="text-brand-primary text-[10px] uppercase tracking-[0.4em] font-black mb-6">Discovery Catalog</h4>
-          <h1 className="text-4xl md:text-7xl lg:text-9xl font-serif font-black tracking-tighter mb-8 text-gray-900">Experiences</h1>
-          <p className="text-gray-400 max-w-2xl text-base uppercase tracking-[0.2em] leading-loose font-bold">
-            From the high peaks of the North to the silent deserts of the West.
-          </p>
-        </header>
+    <div className="min-h-screen bg-[#fcfdfd]">
 
+      {/* ═══════════════════════════════════════════════════════════════════════
+          HERO — Cinematic full-bleed hero
+      ═══════════════════════════════════════════════════════════════════════ */}
+      <section className="relative min-h-[75vh] flex items-center justify-center overflow-hidden pt-28">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1506461883276-594a12b11cf3?auto=format&fit=crop&q=80&w=2000"
+            alt="Travel destinations"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-brand-navy/70 via-brand-navy/50 to-brand-navy/80" />
+        </div>
+
+        {/* Floating geometric accents */}
+        <div className="absolute top-24 right-16 w-64 h-64 border border-white/[0.05] rounded-full" />
+        <div className="absolute bottom-20 left-12 w-40 h-40 border border-brand-primary/10 rounded-full" />
+
+        {/* Hero Content */}
+        <div className="relative z-10 container mx-auto px-6 md:px-12 text-center max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+          >
+            <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/15 rounded-full px-6 py-2.5 mb-10">
+              <Filter size={12} className="text-brand-primary" />
+              <span className="text-white/80 text-[10px] uppercase tracking-[0.4em] font-bold">Discovery Catalog</span>
+            </div>
+            <h1 className="text-5xl md:text-7xl lg:text-[6.5rem] font-serif font-black tracking-tighter text-white leading-[0.9] mb-8">
+              Curated<br />
+              <span className="text-brand-primary">Experiences</span>
+            </h1>
+            <p className="text-white/55 text-lg md:text-xl font-light leading-relaxed max-w-2xl mx-auto">
+              From the high peaks of the North to the silent deserts of the West — handpicked journeys designed for the soul.
+            </p>
+          </motion.div>
+        </div>
+
+        {/* Bottom fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#fcfdfd] to-transparent" />
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          FILTERS + SEARCH + RESULTS
+      ═══════════════════════════════════════════════════════════════════════ */}
+      <div className="container mx-auto px-6 md:px-12 pt-12">
         {/* Filters and Search */}
         <div className="flex flex-col md:flex-row gap-8 mb-20 items-center justify-between border-y border-gray-100 py-10">
           <div className="flex flex-wrap gap-10">
@@ -60,7 +108,7 @@ export default function Events() {
               <button
                 key={cat}
                 onClick={() => setCategory(cat)}
-                className={`text-[10px] uppercase tracking-[0.3em] font-black transition-all ${category === cat ? "text-brand-primary border-b-2 border-brand-primary" : "text-gray-400 hover:text-brand-dark"
+                className={`text-[12px] uppercase tracking-[0.2em] font-serif transition-all ${category === cat ? "text-brand-primary border-b-2 border-brand-primary" : "text-gray-500 hover:text-brand-dark"
                   }`}
               >
                 {cat}

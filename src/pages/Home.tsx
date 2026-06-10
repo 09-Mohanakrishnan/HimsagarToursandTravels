@@ -27,6 +27,9 @@ export default function Home() {
   const [content, setContent] = useState<SiteContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
+  const [searchDestination, setSearchDestination] = useState("");
+  const [searchDuration, setSearchDuration] = useState("Select Duration");
+  const [searchCategory, setSearchCategory] = useState("Spiritual");
 
   useEffect(() => {
     Promise.all([
@@ -35,7 +38,7 @@ export default function Home() {
     ]).then(([eventsData, contentData]) => {
       const normalized = eventsData.map((e: any) => ({ ...e, id: e._id || e.id }));
       setFeaturedEvents(normalized.filter((e: TravelEvent) => e.is_featured).slice(0, 3));
-      
+
       if (contentData?.categories) {
         contentData.categories = contentData.categories.map((cat: any) => {
           const queryCategory = cat.title.replace(/ Tours/i, "").trim().toLowerCase();
@@ -102,27 +105,43 @@ export default function Home() {
           <div className="bg-white p-4 md:p-8 rounded-none md:rounded-[2rem] shadow-2xl flex flex-col md:flex-row gap-6 items-center">
             <div className="flex-1 w-full space-y-2 border-b md:border-b-0 md:border-r border-gray-100 pb-4 md:pb-0 md:pr-6">
               <label className="text-[9px] uppercase tracking-widest font-black text-gray-400">Where to?</label>
-              <input type="text" placeholder="Your destination" className="w-full outline-none text-gray-800 font-bold bg-transparent" />
+              <input
+                type="text"
+                placeholder="Your destination"
+                className="w-full outline-none text-gray-800 font-bold bg-transparent"
+                value={searchDestination}
+                onChange={e => setSearchDestination(e.target.value)}
+              />
             </div>
             <div className="flex-1 w-full space-y-2 border-b md:border-b-0 md:border-r border-gray-100 pb-4 md:pb-0 md:pr-6">
               <label className="text-[9px] uppercase tracking-widest font-black text-gray-400">Duration</label>
-              <select className="w-full bg-transparent outline-none text-gray-800 font-bold appearance-none">
-                <option>Select Duration</option>
-                <option>1-7 Days</option>
-                <option>8-14 Days</option>
-                <option>15+ Days</option>
+              <select
+                className="w-full bg-transparent outline-none text-gray-800 font-bold appearance-none"
+                value={searchDuration}
+                onChange={e => setSearchDuration(e.target.value)}
+              >
+                <option value="Select Duration">Select Duration</option>
+                <option value="1-7 Days">1-7 Days</option>
+                <option value="8-14 Days">8-14 Days</option>
+                <option value="15+ Days">15+ Days</option>
               </select>
             </div>
             <div className="flex-1 w-full space-y-2 border-b md:border-b-0 md:border-r border-gray-100 pb-4 md:pb-0 md:pr-6">
               <label className="text-[9px] uppercase tracking-widest font-black text-gray-400">Type</label>
-              <select className="w-full bg-transparent outline-none text-gray-800 font-bold appearance-none">
-                <option>Spiritual</option>
-                <option>Trekking</option>
-                <option>Leisure</option>
-                <option>Adventure</option>
+              <select
+                className="w-full bg-transparent outline-none text-gray-800 font-bold appearance-none"
+                value={searchCategory}
+                onChange={e => setSearchCategory(e.target.value)}
+              >
+                <option value="Spiritual">Spiritual</option>
+                <option value="International">International</option>
+                <option value="Domestic">Domestic</option>
               </select>
             </div>
-            <Link to="/tours" className="w-full md:w-auto px-12 py-5 bg-brand-navy text-white rounded-xl shadow-lg hover:bg-brand-dark transition-all flex items-center justify-center gap-3">
+            <Link
+              to={`/tours?category=${encodeURIComponent(searchCategory)}${searchDestination ? `&search=${encodeURIComponent(searchDestination)}` : ""}`}
+              className="w-full md:w-auto px-12 py-5 bg-brand-navy text-white rounded-xl shadow-lg hover:bg-brand-dark transition-all flex items-center justify-center gap-3"
+            >
               <span className="text-[10px] uppercase font-black tracking-widest">Search</span>
             </Link>
           </div>

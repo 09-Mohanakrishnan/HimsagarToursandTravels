@@ -256,16 +256,16 @@ export default function EventManager() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase font-black text-gray-400 tracking-widest">Category *</label>
-                    <input
-                      list="category-options"
+                    <select
+                      required
                       className="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 outline-none focus:border-brand-primary text-gray-800 font-medium transition-colors"
                       value={selectedEvent?.category || "Spiritual"}
                       onChange={e => setSelectedEvent({ ...selectedEvent!, category: e.target.value })}
-                      placeholder="Select or type new category"
-                    />
-                    <datalist id="category-options">
-                      {categories.map(c => <option key={c} value={c} />)}
-                    </datalist>
+                    >
+                      <option value="Spiritual">Spiritual</option>
+                      <option value="International">International</option>
+                      <option value="Domestic">Domestic</option>
+                    </select>
                   </div>
                 </div>
 
