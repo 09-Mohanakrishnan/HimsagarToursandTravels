@@ -234,6 +234,7 @@ export default function EventDetail() {
   if (!event) return <div className="h-screen flex items-center justify-center bg-white"><p className="text-2xl font-serif text-gray-400">Experience not found</p></div>;
 
   const meta = tourMeta[event.title] || defaultMeta;
+  const routeToDisplay = event.route || meta.route;
   const itineraryToDisplay = event.itinerary && event.itinerary.length > 0
     ? event.itinerary.map(item => ({ day: `Day ${item.day}`, title: item.title, desc: item.description }))
     : meta.itinerary;
@@ -307,7 +308,7 @@ export default function EventDetail() {
                 </h3>
 
                 <div className="relative pl-5 space-y-6 before:absolute before:inset-y-2 before:left-[27px] before:w-[2px] before:bg-gradient-to-b before:from-brand-primary before:to-gray-100">
-                  {meta.route.split(' → ').map((stop, i) => (
+                  {routeToDisplay.split(' → ').map((stop, i) => (
                     <motion.div
                       key={i}
                       initial={{ opacity: 0, x: 20 }}
@@ -557,7 +558,7 @@ export default function EventDetail() {
       </section>
 
       {/* Section 4: Itinerary — Accordion */}
-      <ItineraryAccordion itinerary={itineraryToDisplay} route={meta.route} />
+      <ItineraryAccordion itinerary={itineraryToDisplay} route={routeToDisplay} />
 
       {/* Section 5: Inclusions + Booking */}
       <section className="py-24 bg-brand-navy text-white">

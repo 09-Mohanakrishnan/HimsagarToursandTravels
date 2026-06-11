@@ -5,6 +5,19 @@ import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../lib/utils";
 import RichTextEditor from "../../components/RichTextEditor";
 
+const getFallbackRoute = (title: string) => {
+  const fallbacks: Record<string, string> = {
+    "Char Dham Yatra": "Haridwar → Barkot → Yamunotri → Uttarkashi → Gangotri → Guptkashi → Kedarnath → Badrinath → Rishikesh",
+    "Muktinath Yatra": "Kathmandu → Pokhara → Jomsom → Muktinath → Pokhara → Kathmandu",
+    "Malaysia and Singapore Tour": "Kuala Lumpur → Batu Caves → Putrajaya → Genting → Singapore → Sentosa",
+    "Malaysia & Singapore Tour": "Kuala Lumpur → Batu Caves → Putrajaya → Genting → Singapore → Sentosa",
+    "Bali Tour": "Kuta → Ubud → Kintamani → Tanjung Benoa → Uluwatu → Tanah Lot → Seminyak",
+    "Ramayana Tour": "Colombo → Sigiriya → Dambulla → Kandy → Nuwara Eliya → Ella → Colombo",
+    "Kashmir Package": "Srinagar → Mughal Gardens → Gulmarg → Pahalgam → Sonmarg → Srinagar",
+  };
+  return fallbacks[title] || "Departure City → Destination → Return";
+};
+
 export default function EventManager() {
   const [events, setEvents] = useState<TravelEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,13 +45,13 @@ export default function EventManager() {
   };
 
   const handleCreateNew = () => {
-    setSelectedEvent({ title: "", description: "", date: "", price: "", location: "", category: "Spiritual", images: [], itinerary: [], visual_journey: [], is_featured: false, overview: "", places_covered: "", tour_cost_includes: "", note: "", tour_highlights: "", included: "", excluded: "" });
+    setSelectedEvent({ title: "", description: "", date: "", price: "", location: "", category: "Spiritual", images: [], itinerary: [], visual_journey: [], is_featured: false, overview: "", places_covered: "", tour_cost_includes: "", note: "", tour_highlights: "", included: "", excluded: "", route: "" });
     setNewImagePreviews([]);
     setIsEditing(true);
   };
 
   const handleEdit = (event: TravelEvent) => {
-    setSelectedEvent({ ...event });
+    setSelectedEvent({ ...event, route: event.route || getFallbackRoute(event.title) });
     setNewImagePreviews([]);
     setIsEditing(true);
   };
@@ -126,6 +139,7 @@ export default function EventManager() {
     formData.append("tour_highlights", selectedEvent!.tour_highlights || "");
     formData.append("included", selectedEvent!.included || selectedEvent!.included_excluded || "");
     formData.append("excluded", selectedEvent!.excluded || "");
+    formData.append("route", selectedEvent!.route || "");
 
     // Attach new image files
     if (fileInputRef.current?.files) {
@@ -311,6 +325,23 @@ export default function EventManager() {
                       placeholder="Uttarakhand, India"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-black text-gray-400 tracking-widest">Journey Route (Separated by ' → ')</label>
+                  <input
+                    type="text"
+                    className="w-full bg-slate-50 border border-gray-200 rounded-xl p-4 outline-none focus:border-brand-primary text-gray-800 font-medium transition-colors"
+                    value={selectedEvent?.route || ""}
+                    onChange={e => {
+                      let val = e.target.value;
+                      // Replace arrow symbols (-> or -> or ->) with the standard ' → ' separator used in the UI
+                      val = val.replace(/\s*->\s*/g, " → ");
+                      setSelectedEvent({ ...selectedEvent!, route: val });
+                    }}
+                    placeholder="e.g. Departure City → Destination → Return"
+                  />
+                  <p className="text-[10px] text-gray-400 font-medium">Specify stops on the map timeline. Separated by ' → ' (typing '{"->"}' automatically converts to ' → ').</p>
                 </div>
 
                 <label className="flex items-center gap-3 cursor-pointer w-fit">

@@ -52,6 +52,7 @@ const eventSchema = new mongoose.Schema({
   excluded: String,
   included_excluded: String,
   is_featured: { type: Boolean, default: false },
+  route: String,
   created_at: { type: Date, default: Date.now },
 });
 const Event = mongoose.model("Event", eventSchema);
@@ -274,6 +275,30 @@ async function startServer() {
   try {
     await mongoose.connect(MONGO_URI);
     console.log("✅ Connected to MongoDB Atlas");
+
+    // Migration: populate route field for existing events if not set
+    try {
+      const eventsToUpdate = await Event.find({ route: { $exists: false } });
+      if (eventsToUpdate.length > 0) {
+        console.log(`Migrating ${eventsToUpdate.length} events to add route field...`);
+        const fallbacks: Record<string, string> = {
+          "Char Dham Yatra": "Haridwar → Barkot → Yamunotri → Uttarkashi → Gangotri → Guptkashi → Kedarnath → Badrinath → Rishikesh",
+          "Muktinath Yatra": "Kathmandu → Pokhara → Jomsom → Muktinath → Pokhara → Kathmandu",
+          "Malaysia and Singapore Tour": "Kuala Lumpur → Batu Caves → Putrajaya → Genting → Singapore → Sentosa",
+          "Malaysia & Singapore Tour": "Kuala Lumpur → Batu Caves → Putrajaya → Genting → Singapore → Sentosa",
+          "Bali Tour": "Kuta → Ubud → Kintamani → Tanjung Benoa → Uluwatu → Tanah Lot → Seminyak",
+          "Ramayana Tour": "Colombo → Sigiriya → Dambulla → Kandy → Nuwara Eliya → Ella → Colombo",
+          "Kashmir Package": "Srinagar → Mughal Gardens → Gulmarg → Pahalgam → Sonmarg → Srinagar",
+        };
+        for (const ev of eventsToUpdate) {
+          const matchedRoute = fallbacks[ev.title] || "Departure City → Destination → Return";
+          await Event.updateOne({ _id: ev._id }, { $set: { route: matchedRoute } });
+        }
+        console.log("Migration complete.");
+      }
+    } catch (migError) {
+      console.error("⚠️ Migration failed:", migError);
+    }
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err);
     process.exit(1);
@@ -620,6 +645,7 @@ async function startServer() {
         included: req.body.included,
         excluded: req.body.excluded,
         is_featured: req.body.is_featured === "true" || req.body.is_featured === true,
+        route: req.body.route,
         images: [...(Array.isArray(existingImages) ? existingImages : []), ...imageUrls],
         itinerary: req.body.itinerary ? (parseMaybeJSON(req.body.itinerary) || []) : [],
         visual_journey: req.body.visual_journey ? (parseMaybeJSON(req.body.visual_journey) || []) : [],
@@ -654,6 +680,7 @@ async function startServer() {
           included: req.body.included,
           excluded: req.body.excluded,
           is_featured: req.body.is_featured === "true" || req.body.is_featured === true,
+          route: req.body.route,
           images: [...(Array.isArray(existingImages) ? existingImages : []), ...imageUrls],
           itinerary: req.body.itinerary ? (parseMaybeJSON(req.body.itinerary) || []) : [],
           visual_journey: req.body.visual_journey ? (parseMaybeJSON(req.body.visual_journey) || []) : [],

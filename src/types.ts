@@ -19,6 +19,7 @@ export interface TravelEvent {
   excluded?: string;
   included_excluded?: string;
   is_featured: boolean;
+  route?: string;
   created_at: string;
 }
 
