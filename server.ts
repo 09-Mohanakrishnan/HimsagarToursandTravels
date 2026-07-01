@@ -35,6 +35,7 @@ const User = mongoose.model("User", userSchema);
 
 const eventSchema = new mongoose.Schema({
   title: { type: String, required: true },
+  slug: { type: String, unique: true, index: true },
   description: String,
   date: String,
   price: String,
@@ -65,8 +66,11 @@ const siteContentSchema = new mongoose.Schema({
   philosophy: [{ title: String, desc: String }],
   essentials: [{ title: String, desc: String }],
   destinations: [{ name: String, country: String, image: String }],
-  testimonials: [{ name: String, text: String, location: String }],
+  testimonials: [{ name: String, text: String, location: String, image: String, rating: { type: Number, default: 5 } }],
   instagram_moments: [String],
+  instagram_max_posts: { type: Number, default: 12 },
+  instagram_filter_keywords: String,
+  instagram_hide_captions: { type: Boolean, default: false },
 
   // Tours Page
   tours_trust_indicators: [{ value: String, label: String }],
@@ -162,6 +166,38 @@ const parseMaybeJSON = (value: any) => {
   }
   return value;
 };
+
+// ─── Slug Generation ──────────────────────────────────────────────────────────
+
+/** Convert a title string to a URL-friendly slug (e.g. "Muktinath Yatra" → "muktinath-yatra") */
+const generateSlug = (title: string): string => {
+  return title
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9\s-]/g, "") // strip special chars
+    .replace(/\s+/g, "-")         // spaces → hyphens
+    .replace(/-+/g, "-")          // collapse multiple hyphens
+    .replace(/^-|-$/g, "");        // trim leading/trailing hyphens
+};
+
+/** Generate a unique slug, appending -2, -3 etc. if a collision is found */
+const generateUniqueSlug = async (title: string, excludeId?: string): Promise<string> => {
+  let baseSlug = generateSlug(title);
+  if (!baseSlug) baseSlug = "tour";
+  let slug = baseSlug;
+  let counter = 1;
+  while (true) {
+    const query: any = { slug };
+    if (excludeId) query._id = { $ne: excludeId };
+    const existing = await Event.findOne(query);
+    if (!existing) return slug;
+    counter++;
+    slug = `${baseSlug}-${counter}`;
+  }
+};
+
+/** Check if a string looks like a MongoDB ObjectId (24-char hex) */
+const isMongoId = (str: string): boolean => /^[0-9a-fA-F]{24}$/.test(str);
 
 // ─── Seed Data ────────────────────────────────────────────────────────────────
 
@@ -298,6 +334,21 @@ async function startServer() {
       }
     } catch (migError) {
       console.error("⚠️ Migration failed:", migError);
+    }
+
+    // Migration: populate slug field for existing events if not set
+    try {
+      const eventsWithoutSlug = await Event.find({ $or: [{ slug: { $exists: false } }, { slug: null }, { slug: "" }] });
+      if (eventsWithoutSlug.length > 0) {
+        console.log(`Migrating ${eventsWithoutSlug.length} events to add slug field...`);
+        for (const ev of eventsWithoutSlug) {
+          const slug = await generateUniqueSlug(ev.title, ev._id.toString());
+          await Event.updateOne({ _id: ev._id }, { $set: { slug } });
+        }
+        console.log("Slug migration complete.");
+      }
+    } catch (migError) {
+      console.error("⚠️ Slug migration failed:", migError);
     }
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err);
@@ -512,9 +563,15 @@ async function startServer() {
     res.json(events.map(e => ({ ...e.toObject(), id: e._id })));
   });
 
-  app.get("/api/events/:id", async (req, res) => {
+  app.get("/api/events/:idOrSlug", async (req, res) => {
     try {
-      const event = await Event.findById(req.params.id);
+      const param = req.params.idOrSlug;
+      let event;
+      if (isMongoId(param)) {
+        event = await Event.findById(param);
+      } else {
+        event = await Event.findOne({ slug: param });
+      }
       if (!event) return res.status(404).json({ error: "Not found" });
       res.json({ ...event.toObject(), id: event._id });
     } catch {
@@ -590,6 +647,9 @@ async function startServer() {
         destinations: parseMaybeJSON(payload.destinations) ?? content?.destinations,
         testimonials: parseMaybeJSON(payload.testimonials) ?? content?.testimonials,
         instagram_moments: parseMaybeJSON(payload.instagram_moments) ?? content?.instagram_moments,
+        instagram_max_posts: Object.prototype.hasOwnProperty.call(payload, "instagram_max_posts") ? Number(payload.instagram_max_posts) : content?.instagram_max_posts,
+        instagram_filter_keywords: payload.instagram_filter_keywords !== undefined ? payload.instagram_filter_keywords : content?.instagram_filter_keywords,
+        instagram_hide_captions: Object.prototype.hasOwnProperty.call(payload, "instagram_hide_captions") ? (payload.instagram_hide_captions === "true" || payload.instagram_hide_captions === true) : content?.instagram_hide_captions,
 
         tours_trust_indicators: parseMaybeJSON(payload.tours_trust_indicators) ?? content?.tours_trust_indicators,
         tours_differences: parseMaybeJSON(payload.tours_differences) ?? content?.tours_differences,
@@ -630,8 +690,10 @@ async function startServer() {
       const uploadPromises = (files || []).map(f => uploadBufferToCloudinary((f.buffer as Buffer), f.mimetype, f.originalname));
       const imageUrls = files && files.length ? await Promise.all(uploadPromises) : [];
       const existingImages = req.body.existing_images ? (parseMaybeJSON(req.body.existing_images) || []) : [];
+      const slug = await generateUniqueSlug(req.body.title);
       const event = await Event.create({
         title: req.body.title,
+        slug,
         description: req.body.description,
         date: req.body.date,
         price: req.body.price,
@@ -663,10 +725,17 @@ async function startServer() {
       const uploadPromises = (files || []).map(f => uploadBufferToCloudinary((f.buffer as Buffer), f.mimetype, f.originalname));
       const imageUrls = files && files.length ? await Promise.all(uploadPromises) : [];
       const existingImages = req.body.existing_images ? (parseMaybeJSON(req.body.existing_images) || []) : [];
+      // Regenerate slug if title changed
+      const existingEvent = await Event.findById(req.params.id);
+      const newSlug = existingEvent && existingEvent.title !== req.body.title
+        ? await generateUniqueSlug(req.body.title, req.params.id)
+        : existingEvent?.slug || await generateUniqueSlug(req.body.title, req.params.id);
+
       const event = await Event.findByIdAndUpdate(
         req.params.id,
         {
           title: req.body.title,
+          slug: newSlug,
           description: req.body.description,
           date: req.body.date,
           price: req.body.price,
@@ -781,6 +850,77 @@ async function startServer() {
     } catch (err) {
       console.error("Upload failed:", err);
       res.status(500).json({ error: "Upload failed" });
+    }
+  });
+
+  // ─── Instagram Feed API ─────────────────────────────────────────────────────
+
+  let instagramCache: { data: any; timestamp: number } | null = null;
+  const INSTAGRAM_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+  app.get("/api/instagram/status", async (req, res) => {
+    const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
+    if (!accessToken) {
+      return res.json({ connected: false });
+    }
+    try {
+      const meResponse = await fetch(`https://graph.instagram.com/me?fields=id,username&access_token=${accessToken}`);
+      if (!meResponse.ok) return res.json({ connected: false });
+      const meData = await meResponse.json() as any;
+      res.json({ connected: true, username: meData.username });
+    } catch (e) {
+      res.json({ connected: false });
+    }
+  });
+
+  app.get("/api/instagram/feed", async (req, res) => {
+    const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
+    if (!accessToken) {
+      return res.json({ posts: [], error: "Instagram not configured" });
+    }
+
+    // Return cached data if fresh
+    if (instagramCache && (Date.now() - instagramCache.timestamp) < INSTAGRAM_CACHE_TTL) {
+      return res.json({ posts: instagramCache.data, cached: true });
+    }
+
+    try {
+      // First, resolve the Instagram User ID from the token via /me
+      const meResponse = await fetch(
+        `https://graph.instagram.com/me?fields=id,username&access_token=${accessToken}`
+      );
+      if (!meResponse.ok) {
+        const errText = await meResponse.text();
+        console.error("Instagram /me failed:", errText);
+        return res.json({ posts: [], error: "Instagram authentication failed" });
+      }
+      const meData = await meResponse.json() as any;
+      const userId = meData.id;
+
+      // Fetch media - fetching 50 to allow client-side filtering
+      const mediaResponse = await fetch(
+        `https://graph.instagram.com/${userId}/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&limit=50&access_token=${accessToken}`
+      );
+      if (!mediaResponse.ok) {
+        const errText = await mediaResponse.text();
+        console.error("Instagram media fetch failed:", errText);
+        return res.json({ posts: [], error: "Failed to fetch Instagram posts" });
+      }
+      const mediaData = await mediaResponse.json() as any;
+      const posts = (mediaData.data || []).map((post: any) => ({
+        id: post.id,
+        caption: post.caption || "",
+        media_type: post.media_type,
+        media_url: post.media_type === "VIDEO" ? (post.thumbnail_url || post.media_url) : post.media_url,
+        permalink: post.permalink,
+        timestamp: post.timestamp,
+      }));
+
+      instagramCache = { data: posts, timestamp: Date.now() };
+      res.json({ posts, cached: false });
+    } catch (err) {
+      console.error("Instagram API error:", err);
+      res.json({ posts: [], error: "Instagram API error" });
     }
   });
 

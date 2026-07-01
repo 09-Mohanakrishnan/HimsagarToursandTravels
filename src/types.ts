@@ -1,6 +1,7 @@
 export interface TravelEvent {
   id: string;
   _id?: string;
+  slug: string;
   title: string;
   description: string;
   date: string;
@@ -44,8 +45,11 @@ export interface SiteContent {
   philosophy: { title: string; desc: string }[];
   essentials: { title: string; desc: string }[];
   destinations: { name: string; country: string; image: string }[];
-  testimonials: { name: string; text: string; location: string }[];
+  testimonials: { name: string; text: string; location: string; image?: string; rating?: number }[];
   instagram_moments: string[];
+  instagram_max_posts?: number;
+  instagram_filter_keywords?: string;
+  instagram_hide_captions?: boolean;
 
   // Tours
   tours_trust_indicators: { value: string; label: string }[];

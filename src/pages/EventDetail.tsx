@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { MapPin, Calendar, Send, CheckCircle, Clock, Users, Route, Shield, Hotel, UtensilsCrossed, Bus, Ticket, ChevronLeft, ChevronRight, ChevronDown, Compass, Star, BadgeCheck, AlertCircle, CheckCheck, XCircle } from "lucide-react";
 import { TravelEvent } from "../types";
+import { useSEO } from "../lib/useSEO";
 
 // Tour-specific metadata keyed by title
 const tourMeta: Record<string, { tagline: string; duration: string; highlights: string[]; itinerary: { day: string; title: string; desc: string }[]; inclusions: string[]; route: string }> = {
@@ -188,10 +189,17 @@ function ItineraryAccordion({ itinerary, route }: { itinerary: { day: string; ti
 }
 
 export default function EventDetail() {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [event, setEvent] = useState<TravelEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useSEO({
+    title: event ? `${event.title} – ${event.location} | Himsagar Travels` : "Tour Details | Himsagar Travels",
+    description: event ? (event.description || "").substring(0, 160) : "Discover an unforgettable journey.",
+    canonicalPath: `/tours/${slug}`,
+    ogImage: event?.images?.[0],
+  });
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
@@ -207,11 +215,11 @@ export default function EventDetail() {
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" });
 
   useEffect(() => {
-    fetch(`/api/events/${id}`)
+    fetch(`/api/events/${slug}`)
       .then(res => res.json())
       .then(data => { setEvent({ ...data, id: data._id || data.id }); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [id]);
+  }, [slug]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -220,7 +228,7 @@ export default function EventDetail() {
       const response = await fetch("/api/inquiries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, event_id: id }),
+        body: JSON.stringify({ ...formData, event_id: event?.id || event?._id }),
       });
       if (response.ok) setSubmitted(true);
     } catch (error) {

@@ -5,17 +5,20 @@ import { cn } from "../../lib/utils";
 
 export default function ContentManager() {
   const [content, setContent] = useState<SiteContent | null>(null);
+  const [instagramStatus, setInstagramStatus] = useState<{ connected: boolean; username?: string }>({ connected: false });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("home");
 
   useEffect(() => {
-    fetch("/api/content")
-      .then((res) => res.json())
-      .then((data) => {
-        setContent(data);
-        setLoading(false);
-      });
+    Promise.all([
+      fetch("/api/content").then((res) => res.json()),
+      fetch("/api/instagram/status").then((res) => res.json())
+    ]).then(([contentData, statusData]) => {
+      setContent(contentData);
+      setInstagramStatus(statusData);
+      setLoading(false);
+    });
   }, []);
 
   const handleSave = async () => {
@@ -32,6 +35,9 @@ export default function ContentManager() {
       formData.append("destinations", JSON.stringify(content.destinations || []));
       formData.append("testimonials", JSON.stringify(content.testimonials || []));
       formData.append("instagram_moments", JSON.stringify(content.instagram_moments || []));
+      if (content.instagram_max_posts !== undefined) formData.append("instagram_max_posts", content.instagram_max_posts.toString());
+      if (content.instagram_filter_keywords !== undefined) formData.append("instagram_filter_keywords", content.instagram_filter_keywords);
+      if (content.instagram_hide_captions !== undefined) formData.append("instagram_hide_captions", content.instagram_hide_captions.toString());
       // Tours
       formData.append("tours_trust_indicators", JSON.stringify(content.tours_trust_indicators || []));
       formData.append("tours_differences", JSON.stringify(content.tours_differences || []));
@@ -97,6 +103,10 @@ export default function ContentManager() {
 
   const handleStringArrayAdd = (key: keyof SiteContent) => {
     setContent({ ...content, [key]: [...(content[key] as string[] || []), ""] });
+  };
+
+  const handleFieldChange = (key: keyof SiteContent, value: any) => {
+    setContent({ ...content, [key]: value });
   };
 
   return (
@@ -262,26 +272,93 @@ export default function ContentManager() {
             <h2 className="text-xl font-bold mb-6 border-b pb-4">Testimonials</h2>
             <div className="space-y-4">
               {content.testimonials?.map((test, i) => (
-                <div key={i} className="p-4 border rounded-xl flex gap-4 items-start bg-gray-50/50">
-                  <div className="flex-1 space-y-3">
-                    <div className="flex gap-4">
+                <div key={i} className="p-4 border rounded-xl flex flex-col md:flex-row gap-4 items-start bg-gray-50/50 relative">
+                  <div className="w-full md:w-32 flex flex-col gap-2 shrink-0">
+                    <img src={test.image || "https://placehold.co/150x150"} className="w-full aspect-square object-cover rounded-xl bg-gray-100" alt="Avatar" />
+                    <input type="text" value={test.image || ""} onChange={(e) => handleArrayChange("testimonials", i, "image", e.target.value)} className="w-full p-2 border rounded-lg text-xs" placeholder="Avatar URL" />
+                  </div>
+                  <div className="flex-1 space-y-3 w-full">
+                    <div className="flex flex-col md:flex-row gap-4">
                       <input type="text" value={test.name} onChange={(e) => handleArrayChange("testimonials", i, "name", e.target.value)} className="flex-1 p-2 border rounded-lg font-bold" placeholder="Traveler Name" />
                       <input type="text" value={test.location} onChange={(e) => handleArrayChange("testimonials", i, "location", e.target.value)} className="flex-1 p-2 border rounded-lg text-sm" placeholder="Location" />
                     </div>
                     <textarea value={test.text} onChange={(e) => handleArrayChange("testimonials", i, "text", e.target.value)} className="w-full p-2 border rounded-lg text-sm italic" placeholder="Testimonial Quote" rows={3} />
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-gray-500 uppercase">Rating:</span>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <button
+                            key={star}
+                            onClick={() => handleArrayChange("testimonials", i, "rating", star.toString())}
+                            className={`w-6 h-6 flex items-center justify-center rounded ${star <= (test.rating || 5) ? 'text-brand-primary' : 'text-gray-300'}`}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <button onClick={() => handleArrayRemove("testimonials", i)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg mt-1"><Trash2 size={18} /></button>
+                  <button onClick={() => handleArrayRemove("testimonials", i)} className="absolute top-4 right-4 p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button>
                 </div>
               ))}
-              <button onClick={() => handleArrayAdd("testimonials", { name: "", location: "", text: "" })} className="flex items-center gap-2 text-brand-primary font-bold hover:text-brand-accent">
+              <button onClick={() => handleArrayAdd("testimonials", { name: "", location: "", text: "", image: "", rating: 5 })} className="flex items-center gap-2 text-brand-primary font-bold hover:text-brand-accent">
                 <Plus size={16} /> Add Testimonial
               </button>
             </div>
           </section>
 
-          {/* Instagram Moments */}
+          {/* Instagram Moments - Gateway Configuration */}
           <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-2 border-b pb-4"><ImageIcon className="text-brand-primary" /> Instagram Moments</h2>
+            <h2 className="text-xl font-bold mb-6 flex items-center gap-2 border-b pb-4"><ImageIcon className="text-brand-primary" /> Instagram Moments Gateway</h2>
+            
+            <div className="mb-8 p-4 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-gray-900 mb-1">API Connection</h3>
+                <p className="text-sm text-gray-500">Status of your Instagram Graph API integration</p>
+              </div>
+              <div className={`px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-widest ${instagramStatus.connected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {instagramStatus.connected ? `Connected: @${instagramStatus.username}` : 'Disconnected'}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div>
+                <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Max Posts to Display</label>
+                <input 
+                  type="number" 
+                  value={content.instagram_max_posts ?? 12} 
+                  onChange={(e) => handleFieldChange("instagram_max_posts", parseInt(e.target.value) || 12)} 
+                  className="w-full p-3 border rounded-xl font-bold" 
+                  min="1" max="50"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Filter Keywords (Comma separated)</label>
+                <input 
+                  type="text" 
+                  value={content.instagram_filter_keywords ?? ""} 
+                  onChange={(e) => handleFieldChange("instagram_filter_keywords", e.target.value)} 
+                  className="w-full p-3 border rounded-xl" 
+                  placeholder="e.g. travel, himalayas, spiritual"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="flex items-center gap-3 p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                  <input 
+                    type="checkbox" 
+                    checked={content.instagram_hide_captions ?? false} 
+                    onChange={(e) => handleFieldChange("instagram_hide_captions", e.target.checked)} 
+                    className="w-5 h-5 rounded border-gray-300 text-brand-primary focus:ring-brand-primary"
+                  />
+                  <div>
+                    <span className="font-bold text-gray-900 block">Hide Captions on Frontend</span>
+                    <span className="text-sm text-gray-500">Only display the images without showing the text overlay on hover</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <h3 className="font-bold text-gray-900 mb-4 pt-6 border-t border-gray-100">Fallback Images (When API fails)</h3>
             <div className="space-y-4">
               {content.instagram_moments?.map((img, i) => (
                 <div key={i} className="flex gap-4 items-start">
@@ -291,13 +368,13 @@ export default function ContentManager() {
                     value={img}
                     onChange={(e) => handleStringArrayChange("instagram_moments", i, e.target.value)}
                     className="flex-1 p-3 border rounded-xl"
-                    placeholder="Instagram Image URL"
+                    placeholder="Fallback Image URL"
                   />
                   <button onClick={() => handleArrayRemove("instagram_moments", i)} className="p-3 text-red-500 hover:bg-red-50 rounded-xl"><Trash2 size={20} /></button>
                 </div>
               ))}
               <button onClick={() => handleStringArrayAdd("instagram_moments")} className="flex items-center gap-2 text-brand-primary font-bold hover:text-brand-accent">
-                <Plus size={16} /> Add Image
+                <Plus size={16} /> Add Fallback Image
               </button>
             </div>
           </section>

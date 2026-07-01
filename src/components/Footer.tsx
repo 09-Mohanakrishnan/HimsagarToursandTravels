@@ -89,8 +89,8 @@ export default function Footer() {
 
           {/* Quicklinks */}
           <div>
-            <h4 className="text-[10px] uppercase tracking-[0.4em] font-black text-brand-primary mb-8 ml-16">Quicklinks</h4>
-            <ul className="space-y-4 ml-16">
+            <h4 className="text-[10px] uppercase tracking-[0.4em] font-black text-brand-primary mb-8 md:ml-16">Quicklinks</h4>
+            <ul className="space-y-4 md:ml-16">
               {[
                 { name: "Home", path: "/" },
                 { name: "About", path: "/about" },

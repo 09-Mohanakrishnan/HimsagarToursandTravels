@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, useLocation, useParams, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import WhatsAppButton from "./components/WhatsAppButton";
@@ -34,6 +34,35 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Backward compatibility: redirect /events/:id (MongoDB ObjectId) to /tours/:slug */
+function EventIdRedirect() {
+  const { id } = useParams();
+  const [slug, setSlug] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/events/${id}`)
+      .then(res => {
+        if (!res.ok) throw new Error("Not found");
+        return res.json();
+      })
+      .then(data => {
+        if (data.slug) {
+          setSlug(data.slug);
+        } else {
+          // Fallback: if somehow no slug, just render the detail page at this URL
+          setSlug(null);
+          setNotFound(true);
+        }
+      })
+      .catch(() => setNotFound(true));
+  }, [id]);
+
+  if (slug) return <Navigate to={`/tours/${slug}`} replace />;
+  if (notFound) return <MainLayout><div className="pt-40 h-screen flex items-center justify-center text-3xl font-serif text-gray-400">Tour not found</div></MainLayout>;
+  return <div className="h-screen flex items-center justify-center bg-white"><div className="animate-pulse text-brand-primary text-lg font-serif">Redirecting...</div></div>;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -43,7 +72,9 @@ export default function App() {
         <Route path="/" element={<MainLayout><Home /></MainLayout>} />
         <Route path="/events" element={<MainLayout><Events /></MainLayout>} />
         <Route path="/tours" element={<MainLayout><Events /></MainLayout>} />
-        <Route path="/events/:id" element={<MainLayout><EventDetail /></MainLayout>} />
+        <Route path="/tours/:slug" element={<MainLayout><EventDetail /></MainLayout>} />
+        {/* Backward compatibility: old /events/:id URLs redirect to /tours/:slug */}
+        <Route path="/events/:id" element={<EventIdRedirect />} />
         <Route path="/about" element={<MainLayout><About /></MainLayout>} />
         <Route path="/contact" element={<MainLayout><Contact /></MainLayout>} />
 

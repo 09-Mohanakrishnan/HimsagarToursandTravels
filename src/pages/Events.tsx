@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { Filter, MapPin, Calendar, Search, ArrowRight } from "lucide-react";
+import { Filter, MapPin, Search, ArrowRight } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import SubscriptionForm from "../components/SubscriptionForm";
 import { TravelEvent, SiteContent } from "../types";
+import { useSEO } from "../lib/useSEO";
 
 export default function Events() {
   const [searchParams] = useSearchParams();
@@ -15,6 +16,12 @@ export default function Events() {
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState(initialCategory);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
+
+  useSEO({
+    title: "Tour Packages – Spiritual, Domestic & International | Himsagar Travels",
+    description: "Browse all curated travel experiences. From the high peaks of the North to the silent deserts of the West — handpicked journeys designed for the soul.",
+    canonicalPath: "/tours",
+  });
 
   useEffect(() => {
     const cat = searchParams.get("category");
@@ -103,7 +110,7 @@ export default function Events() {
       <div className="container mx-auto px-6 md:px-12 pt-12">
         {/* Filters and Search */}
         <div className="flex flex-col md:flex-row gap-8 mb-20 items-center justify-between border-y border-gray-100 py-10">
-          <div className="flex flex-wrap gap-10">
+          <div className="flex flex-wrap gap-4 md:gap-10">
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -145,7 +152,7 @@ export default function Events() {
                 transition={{ delay: i * 0.05 }}
                 className="group flex flex-col"
               >
-                <Link to={`/events/${event.id}`} className="block overflow-hidden mb-8 aspect-[4/5] relative rounded-2xl border border-gray-100">
+                <Link to={`/tours/${event.slug || event.id}`} className="block overflow-hidden mb-8 aspect-[4/5] relative rounded-2xl border border-gray-100">
                   <img
                     src={event.images[0] || "https://images.unsplash.com/photo-1540541338287-41700207dee6"}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -169,7 +176,7 @@ export default function Events() {
 
                   <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-6">
                     <span className="text-3xl font-black text-brand-navy">₹{event.price}</span>
-                    <Link to={`/events/${event.id}`} className="text-[9px] uppercase tracking-[0.4em] font-black flex items-center gap-3 text-brand-primary hover:text-brand-dark transition-colors underline underline-offset-8">
+                    <Link to={`/tours/${event.slug || event.id}`} className="text-[9px] uppercase tracking-[0.4em] font-black flex items-center gap-3 text-brand-primary hover:text-brand-dark transition-colors underline underline-offset-8">
                       Inquire <ArrowRight size={14} />
                     </Link>
                   </div>
@@ -216,7 +223,7 @@ export default function Events() {
       {/* Section 5: Trust Indicators */}
       {content?.tours_trust_indicators && content.tours_trust_indicators.length > 0 && (
         <section className="py-20 bg-[#f8fafc] border-y border-gray-100">
-          <div className="container mx-auto px-12">
+          <div className="container mx-auto px-6 md:px-12">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center divide-y md:divide-y-0 md:divide-x divide-gray-200">
               {content.tours_trust_indicators.map((item, i) => (
                 <div key={i} className="flex flex-col items-center p-4">
@@ -232,7 +239,7 @@ export default function Events() {
       {/* Section 6: Why Travel With Us (New) */}
       {content?.tours_differences && content.tours_differences.length > 0 && (
         <section className="py-32 bg-white">
-          <div className="container mx-auto px-12 text-center max-w-6xl">
+          <div className="container mx-auto px-6 md:px-12 text-center max-w-6xl">
             <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-6">The Himsagar Difference</h4>
             <h2 className="text-4xl md:text-6xl font-serif font-black tracking-tighter text-gray-900 mb-20">Redefining The Expedition</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
@@ -253,7 +260,7 @@ export default function Events() {
       {/* Section 7: Newsletter (New) */}
       <section className="py-32 bg-brand-navy border-t border-white/10 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-[url('https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=2000')] bg-cover bg-center opacity-10 mix-blend-overlay" />
-        <div className="container mx-auto px-12 relative z-10 text-center max-w-4xl">
+        <div className="container mx-auto px-6 md:px-12 relative z-10 text-center max-w-4xl">
           <h2 className="text-4xl md:text-6xl font-serif font-black tracking-tighter text-white mb-6">Join The Registry</h2>
           <p className="text-white/60 mb-12 text-sm uppercase tracking-widest font-bold">Receive early access to limited-capacity expeditions and private charters.</p>
           <SubscriptionForm

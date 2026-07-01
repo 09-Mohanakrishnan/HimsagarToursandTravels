@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { TravelEvent, SiteContent } from "../types";
 import SubscriptionForm from "../components/SubscriptionForm";
+import InstagramFeed from "../components/InstagramFeed";
+import { useSEO } from "../lib/useSEO";
 
 const FALLBACK_HERO_IMAGES = [
   "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=2000",
@@ -30,6 +32,13 @@ export default function Home() {
   const [searchDestination, setSearchDestination] = useState("");
   const [searchDuration, setSearchDuration] = useState("Select Duration");
   const [searchCategory, setSearchCategory] = useState("Spiritual");
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
+  useSEO({
+    title: "Himsagar Tours and Travels – Spiritual & Himalayan Tour Packages",
+    description: "Explore curated spiritual, domestic & international tour packages. From high peaks to serene landscapes, experience unforgettable journeys with Himsagar Travels.",
+    canonicalPath: "/",
+  });
 
   useEffect(() => {
     Promise.all([
@@ -87,10 +96,10 @@ export default function Home() {
             transition={{ duration: 0.8 }}
             className="max-w-5xl mx-auto"
           >
-            <h1 className="text-[14vw] md:text-[10vw] lg:text-[120px] font-serif font-black tracking-tighter text-brand-primary leading-[0.8] mb-6 drop-shadow-2xl">
+            <h1 className="text-[12vw] md:text-[10vw] lg:text-[120px] font-serif font-black tracking-tighter text-brand-primary leading-[0.8] mb-6 drop-shadow-2xl">
               HIMSAGAR<br />TRAVELS
             </h1>
-            <p className="text-white text-lg md:text-xl uppercase tracking-[0.3em] font-black mb-10 drop-shadow-md">
+            <p className="text-white text-base md:text-xl uppercase tracking-[0.3em] font-black mb-10 drop-shadow-md">
               EXPERIENCE THE EXTRAORDINARY:<br />
               <span className="text-white/80 font-light lowercase font-serif tracking-normal mt-2 block capitalize">Unforgettable Journeys Across the Himalayas & Beyond.</span>
             </p>
@@ -180,7 +189,7 @@ export default function Home() {
         <section className="py-24 bg-brand-navy text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=2000')] opacity-5 mix-blend-overlay object-cover" />
           <div className="container mx-auto px-6 relative z-10">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center divide-x divide-white/10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-y-12 gap-x-6 text-center md:divide-x md:divide-white/10">
               {content.stats.map((stat, i) => (
                 <div key={i} className="flex flex-col items-center justify-center">
                   <motion.span
@@ -269,7 +278,7 @@ export default function Home() {
                         <span className="text-[8px] uppercase tracking-widest text-gray-400 font-black mb-1">Starting from</span>
                         <span className="text-3xl font-black text-brand-navy">₹{event.price}</span>
                       </div>
-                      <Link to={`/events/${event.id}`} className="px-6 py-3 bg-brand-primary text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-brand-accent transition-all shadow-md shadow-brand-primary/20">
+                      <Link to={`/tours/${event.slug || event.id}`} className="px-6 py-3 bg-brand-primary text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-brand-accent transition-all shadow-md shadow-brand-primary/20">
                         View Details
                       </Link>
                     </div>
@@ -317,45 +326,14 @@ export default function Home() {
         </section>
       )}
 
-      {/* 7. Instagram Moments (Infinite Marquee) */}
-      {content?.instagram_moments && content.instagram_moments.length > 0 && (
-        <section className="py-32 bg-white border-t border-gray-100 overflow-hidden flex flex-col">
-          <div className="container mx-auto px-6 relative z-20">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
-              <div>
-                <h4 className="text-brand-primary uppercase tracking-[0.4em] text-[10px] font-black mb-6">Visual Manifest</h4>
-                <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif font-black tracking-tighter text-gray-900">Instagram <br />Moments</h2>
-              </div>
-              <a href="https://www.instagram.com/himsagar_travels?igsh=ZzF2MzdkOHZweHlp" target="_blank" rel="noreferrer" className="text-gray-400 font-bold hover:text-brand-primary transition-colors group flex items-center gap-2 pb-2 border-b border-gray-100 uppercase tracking-widest text-[10px]">
-                Follow @HimsagarTravels
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </a>
-            </div>
-          </div>
-
-          {/* Marquee Wrapper */}
-          <div className="w-full relative flex gap-4 overflow-hidden py-4 -rotate-1 md:-rotate-2 scale-105">
-            <div className="flex shrink-0 gap-4 animate-marquee hover:[animation-play-state:paused]">
-              {content.instagram_moments.map((img, i) => (
-                <a
-                  href="https://www.instagram.com/himsagar_travels?igsh=ZzF2MzdkOHZweHlp"
-                  target="_blank"
-                  rel="noreferrer"
-                  key={i}
-                  className="w-64 h-64 md:w-80 md:h-80 rounded-[2rem] overflow-hidden group relative cursor-pointer block shrink-0"
-                >
-                  <img src={img} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="Himsagar Travels Instagram" />
-                  <div className="absolute inset-0 bg-brand-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-brand-primary shadow-xl">
-                      <Compass size={24} />
-                    </div>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      {/* 7. Instagram Moments (Live Feed) */}
+      <InstagramFeed
+        fallbackImages={content?.instagram_moments}
+        instagramUrl={content?.instagram_url}
+        maxPosts={content?.instagram_max_posts}
+        filterKeywords={content?.instagram_filter_keywords}
+        hideCaptions={content?.instagram_hide_captions}
+      />
 
       {/* 8. Popular Destinations Section */}
       {content?.destinations && content.destinations.length > 0 && (
@@ -380,13 +358,28 @@ export default function Home() {
         </section>
       )}
 
-      {/* 9. Testimonials Section — Carousel */}
+      {/* 9. Testimonials Section — Google Reviews Style Carousel */}
       {content?.testimonials && content.testimonials.length > 0 && (() => {
+        const GOOGLE_REVIEWS_URL = "https://share.google/WsVBIIyEqN6Rp7Pwv";
+        const GOOGLE_WRITE_REVIEW_URL = "https://g.page/r/Cd-b71nfrCwWEAE/review";
+
         const TestimonialsCarousel = () => {
           const [currentSlide, setCurrentSlide] = useState(0);
           const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
+          const [desktopVisible, setDesktopVisible] = useState(3);
+
+          useEffect(() => {
+            const handleResize = () => {
+              if (window.innerWidth < 768) setDesktopVisible(1);
+              else if (window.innerWidth < 1024) setDesktopVisible(2);
+              else setDesktopVisible(3);
+            };
+            handleResize();
+            window.addEventListener('resize', handleResize);
+            return () => window.removeEventListener('resize', handleResize);
+          }, []);
+
           const testimonials = content!.testimonials!;
-          const desktopVisible = 3;
           const maxSlide = Math.max(0, testimonials.length - desktopVisible);
 
           const startAutoplay = useCallback(() => {
@@ -405,6 +398,12 @@ export default function Home() {
             setCurrentSlide(prev => dir === 'next' ? (prev >= maxSlide ? 0 : prev + 1) : (prev <= 0 ? maxSlide : prev - 1));
             startAutoplay();
           };
+
+          // Google-style avatar colors
+          const avatarColors = [
+            "bg-[#1a73e8]", "bg-[#ea4335]", "bg-[#34a853]", "bg-[#fbbc04]",
+            "bg-[#4285f4]", "bg-[#ff6d01]", "bg-[#46bdc6]", "bg-[#7baaf7]"
+          ];
 
           return (
             <section className="py-32 bg-white border-y border-gray-100 overflow-hidden"
@@ -441,18 +440,53 @@ export default function Home() {
                       {testimonials.map((testimonial, i) => (
                         <div
                           key={i}
-                          className="w-full md:w-1/2 lg:w-1/3 flex-shrink-0 px-4"
+                          className="w-full md:w-1/2 lg:w-1/3 flex-shrink-0 px-3"
                         >
-                          <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col justify-between h-full hover:shadow-xl transition-shadow">
-                            <div>
-                              <div className="flex gap-1 text-brand-primary mb-6">
-                                {[1, 2, 3, 4, 5].map(star => <Star key={star} size={14} fill="currentColor" />)}
+                          {/* Google Review Card */}
+                          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col h-full hover:shadow-lg transition-shadow overflow-hidden">
+                            {/* Card Header — Avatar + Name + Google badge */}
+                            <div className="px-6 pt-6 pb-4 flex items-start gap-3.5">
+                              {/* Avatar */}
+                              {testimonial.image ? (
+                                <img src={testimonial.image} alt={testimonial.name} className="w-10 h-10 rounded-full object-cover shrink-0" />
+                              ) : (
+                                <div className={`w-10 h-10 rounded-full ${avatarColors[i % avatarColors.length]} flex items-center justify-center text-white text-sm font-bold shrink-0`}>
+                                  {testimonial.name.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="text-sm font-medium text-gray-900 truncate">{testimonial.name}</h4>
+                                </div>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className="text-xs text-gray-500">{testimonial.location}</span>
+                                  <span className="text-gray-300">·</span>
+                                  <span className="text-xs text-gray-400">Google Review</span>
+                                </div>
                               </div>
-                              <p className="text-lg font-serif text-gray-600 leading-relaxed mb-8">"{testimonial.text}"</p>
+                              {/* Google "G" logo */}
+                              <div className="shrink-0 mt-0.5">
+                                <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                                </svg>
+                              </div>
                             </div>
-                            <div>
-                              <h4 className="text-sm font-black uppercase tracking-tighter text-gray-900">{testimonial.name}</h4>
-                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{testimonial.location}</p>
+
+                            {/* Star Rating Row */}
+                            <div className="px-6 pb-3 flex items-center gap-1.5">
+                              <div className="flex gap-0.5">
+                                {[1, 2, 3, 4, 5].map(star => (
+                                  <Star key={star} size={14} className={star <= (testimonial.rating || 5) ? "text-[#fbbc04]" : "text-gray-300"} fill={star <= (testimonial.rating || 5) ? "#fbbc04" : "transparent"} />
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Review Text */}
+                            <div className="px-6 pb-6 flex-1">
+                              <p className="text-[13.5px] text-gray-700 leading-relaxed line-clamp-5">{testimonial.text}</p>
                             </div>
                           </div>
                         </div>
@@ -471,6 +505,33 @@ export default function Home() {
                       />
                     ))}
                   </div>
+                </div>
+
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-16">
+                  <a
+                    href={GOOGLE_WRITE_REVIEW_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2.5 px-8 py-4 bg-brand-primary text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-brand-accent transition-all shadow-lg shadow-brand-primary/20"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    Write a Review
+                  </a>
+                  <a
+                    href={GOOGLE_REVIEWS_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2.5 px-8 py-4 bg-white text-gray-700 border border-gray-200 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    View All Reviews
+                  </a>
                 </div>
               </div>
             </section>

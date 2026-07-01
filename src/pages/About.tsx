@@ -3,6 +3,7 @@ import { motion, useInView } from "motion/react";
 import { Compass, Shield, Users, Map, Globe, Leaf, Award, ArrowRight, MapPin, Clock, Sparkles, BadgeDollarSign, Headphones, BookOpen, Heart, Mountain, Plane } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SiteContent } from "../types";
+import { useSEO } from "../lib/useSEO";
 import * as LucideIcons from "lucide-react";
 
 // Animated counter component
@@ -81,6 +82,12 @@ const stats = [
 
 export default function About() {
   const [content, setContent] = useState<SiteContent | null>(null);
+
+  useSEO({
+    title: "About Us – Our Story & Heritage | Himsagar Travels",
+    description: "Since 1995, Himsagar Travels has been crafting spiritual and Himalayan tour packages. Learn about our heritage, principles, and team.",
+    canonicalPath: "/about",
+  });
 
   useEffect(() => {
     fetch("/api/content")
