@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, Calendar, MessageSquare, LogOut, Settings, User, Menu, X, Globe, Mail } from "lucide-react";
+import { LayoutDashboard, Calendar, MessageSquare, LogOut, Settings, User, Menu, X, Globe, Mail, Search, BookOpen, ChevronDown, ChevronRight, Send } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 export default function AdminLayout() {
@@ -25,8 +25,18 @@ export default function AdminLayout() {
     { name: "Subscriptions", path: "/admin/subscriptions", icon: Mail },
     { name: "Page Content", path: "/admin/content", icon: Globe },
     { name: "Inquiries", path: "/admin/inquiries", icon: MessageSquare },
+    { name: "SEO Management", path: "/admin/seo", icon: Search },
     { name: "Settings", path: "/admin/settings", icon: Settings },
   ];
+
+  const blogSubItems = [
+    { name: "All Blogs", path: "/admin/blog" },
+    { name: "Categories", path: "/admin/blog/categories" },
+    { name: "Email Campaigns", path: "/admin/blog/campaigns" },
+  ];
+
+  const isBlogActive = location.pathname.startsWith("/admin/blog");
+  const [blogExpanded, setBlogExpanded] = useState(isBlogActive);
 
   const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
     <aside className={cn(
@@ -61,6 +71,46 @@ export default function AdminLayout() {
             )}
           </Link>
         ))}
+
+        {/* Blog Management — collapsible */}
+        <div>
+          <button
+            onClick={() => setBlogExpanded(e => !e)}
+            className={cn(
+              "w-full flex items-center gap-3 py-3 px-4 rounded-xl transition-all",
+              isBlogActive
+                ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20"
+                : "text-white/40 hover:text-white hover:bg-white/5"
+            )}
+          >
+            <BookOpen size={16} className="flex-shrink-0" />
+            {(sidebarOpen || mobile) && (
+              <>
+                <span className="text-[10px] uppercase tracking-[0.25em] font-black flex-1 text-left">Blog</span>
+                {blogExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+              </>
+            )}
+          </button>
+          {blogExpanded && (sidebarOpen || mobile) && (
+            <div className="ml-4 mt-1 space-y-1 border-l border-white/10 pl-4">
+              {blogSubItems.map(sub => (
+                <Link
+                  key={sub.path}
+                  to={sub.path}
+                  onClick={() => setMobileSidebarOpen(false)}
+                  className={cn(
+                    "flex items-center py-2 px-3 rounded-xl text-[10px] uppercase tracking-[0.25em] font-black transition-all",
+                    location.pathname === sub.path
+                      ? "text-brand-primary bg-brand-primary/10"
+                      : "text-white/30 hover:text-white hover:bg-white/5"
+                  )}
+                >
+                  {sub.name}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </nav>
 
       <div className="p-4 border-t border-white/10">

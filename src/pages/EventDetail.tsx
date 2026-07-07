@@ -3,7 +3,9 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { MapPin, Calendar, Send, CheckCircle, Clock, Users, Route, Shield, Hotel, UtensilsCrossed, Bus, Ticket, ChevronLeft, ChevronRight, ChevronDown, Compass, Star, BadgeCheck, AlertCircle, CheckCheck, XCircle } from "lucide-react";
 import { TravelEvent } from "../types";
-import { useSEO } from "../lib/useSEO";
+import { useSEOOverride } from "../lib/useSEO";
+import { getEventSEOConfig } from "../lib/seoConfig";
+import WhatsAppButton from "../components/WhatsAppButton";
 
 // Tour-specific metadata keyed by title
 const tourMeta: Record<string, { tagline: string; duration: string; highlights: string[]; itinerary: { day: string; title: string; desc: string }[]; inclusions: string[]; route: string }> = {
@@ -194,12 +196,8 @@ export default function EventDetail() {
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  useSEO({
-    title: event ? `${event.title} – ${event.location} | Himsagar Travels` : "Tour Details | Himsagar Travels",
-    description: event ? (event.description || "").substring(0, 160) : "Discover an unforgettable journey.",
-    canonicalPath: `/tours/${slug}`,
-    ogImage: event?.images?.[0],
-  });
+  // We only get the SEO config if the event is loaded. The useSEO hook handles it.
+  useSEOOverride(event ? `event::${event.slug}` : "", getEventSEOConfig(event));
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {

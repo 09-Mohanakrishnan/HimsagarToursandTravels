@@ -16,6 +16,13 @@ import InquiryManager from "./pages/admin/InquiryManager";
 import ContentManager from "./pages/admin/ContentManager";
 import Settings from "./pages/admin/Settings";
 import SubscriptionManager from "./pages/admin/SubscriptionManager";
+import SEOManager from "./pages/admin/SEOManager";
+import Blog from "./pages/Blog";
+import BlogDetail from "./pages/BlogDetail";
+import BlogManager from "./pages/admin/blog/BlogManager";
+import BlogEditor from "./pages/admin/blog/BlogEditor";
+import BlogCategories from "./pages/admin/blog/BlogCategories";
+import EmailCampaignMonitor from "./pages/admin/blog/EmailCampaignMonitor";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -78,6 +85,10 @@ export default function App() {
         <Route path="/about" element={<MainLayout><About /></MainLayout>} />
         <Route path="/contact" element={<MainLayout><Contact /></MainLayout>} />
 
+        {/* Blog */}
+        <Route path="/blog" element={<MainLayout><Blog /></MainLayout>} />
+        <Route path="/blog/:slug" element={<MainLayout><BlogDetail /></MainLayout>} />
+
         {/* Admin */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminLayout />}>
@@ -87,7 +98,13 @@ export default function App() {
           <Route path="subscriptions" element={<SubscriptionManager />} />
           <Route path="inquiries" element={<InquiryManager />} />
           <Route path="content" element={<ContentManager />} />
+          <Route path="seo" element={<SEOManager />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="blog" element={<BlogManager />} />
+          <Route path="blog/new" element={<BlogEditor />} />
+          <Route path="blog/edit/:id" element={<BlogEditor />} />
+          <Route path="blog/categories" element={<BlogCategories />} />
+          <Route path="blog/campaigns" element={<EmailCampaignMonitor />} />
         </Route>
 
         {/* 404 */}

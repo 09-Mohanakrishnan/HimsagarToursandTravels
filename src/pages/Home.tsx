@@ -5,7 +5,8 @@ import { Link } from "react-router-dom";
 import { TravelEvent, SiteContent } from "../types";
 import SubscriptionForm from "../components/SubscriptionForm";
 import InstagramFeed from "../components/InstagramFeed";
-import { useSEO } from "../lib/useSEO";
+import { useSEOOverride } from "../lib/useSEO";
+import { seoConfig } from "../lib/seoConfig";
 
 const FALLBACK_HERO_IMAGES = [
   "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=2000",
@@ -34,11 +35,7 @@ export default function Home() {
   const [searchCategory, setSearchCategory] = useState("Spiritual");
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
-  useSEO({
-    title: "Himsagar Tours and Travels – Spiritual & Himalayan Tour Packages",
-    description: "Explore curated spiritual, domestic & international tour packages. From high peaks to serene landscapes, experience unforgettable journeys with Himsagar Travels.",
-    canonicalPath: "/",
-  });
+  useSEOOverride("home", seoConfig.Home);
 
   useEffect(() => {
     Promise.all([

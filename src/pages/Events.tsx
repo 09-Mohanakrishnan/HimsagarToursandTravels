@@ -4,7 +4,8 @@ import { Filter, MapPin, Search, ArrowRight } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import SubscriptionForm from "../components/SubscriptionForm";
 import { TravelEvent, SiteContent } from "../types";
-import { useSEO } from "../lib/useSEO";
+import { useSEOOverride } from "../lib/useSEO";
+import { seoConfig } from "../lib/seoConfig";
 
 export default function Events() {
   const [searchParams] = useSearchParams();
@@ -17,11 +18,7 @@ export default function Events() {
   const [category, setCategory] = useState(initialCategory);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
 
-  useSEO({
-    title: "Tour Packages – Spiritual, Domestic & International | Himsagar Travels",
-    description: "Browse all curated travel experiences. From the high peaks of the North to the silent deserts of the West — handpicked journeys designed for the soul.",
-    canonicalPath: "/tours",
-  });
+  useSEOOverride("events", seoConfig.Events);
 
   useEffect(() => {
     const cat = searchParams.get("category");

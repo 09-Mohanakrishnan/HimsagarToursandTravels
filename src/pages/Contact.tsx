@@ -2,14 +2,11 @@ import { motion } from "motion/react";
 import { Mail, Phone, MapPin, Globe, Clock, Shield, Plus, Minus, Send, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { SiteContent } from "../types";
-import { useSEO } from "../lib/useSEO";
+import { useSEOOverride } from "../lib/useSEO";
+import { seoConfig } from "../lib/seoConfig";
 
 export default function Contact() {
-  useSEO({
-    title: "Contact Us – Book Your Journey | Himsagar Travels",
-    description: "Get in touch with Himsagar Travels for bookings, inquiries, and custom tour packages. Find our office locations, FAQs, and contact details.",
-    canonicalPath: "/contact",
-  });
+  useSEOOverride("contact", seoConfig.Contact);
 
   const [loading, setLoading] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);

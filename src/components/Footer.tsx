@@ -94,6 +94,7 @@ export default function Footer() {
               {[
                 { name: "Home", path: "/" },
                 { name: "About", path: "/about" },
+                { name: "Blog", path: "/blog" },
                 { name: "Spiritual Tours", path: "/tours?category=Spiritual" },
                 { name: "Domestic Tours", path: "/tours?category=Domestic" },
                 { name: "International Tours", path: "/tours?category=International" },

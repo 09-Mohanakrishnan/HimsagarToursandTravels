@@ -80,5 +80,92 @@ export interface Subscription {
   email: string;
   name?: string;
   source?: string;
+  status?: 'active' | 'unsubscribed';
+  lastEmailSent?: string;
+  totalEmailsReceived?: number;
+  created_at: string;
+}
+
+// ─── Blog Types ───────────────────────────────────────────────────────────────
+
+export interface BlogCategory {
+  id: string;
+  _id?: string;
+  name: string;
+  slug: string;
+  description?: string;
+  color?: string;
+  postCount?: number;
+  created_at: string;
+}
+
+export interface BlogTag {
+  id: string;
+  _id?: string;
+  name: string;
+  slug: string;
+  created_at: string;
+}
+
+export interface BlogFAQ {
+  question: string;
+  answer: string;
+}
+
+export interface Blog {
+  id: string;
+  _id?: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;           // Rich HTML from TipTap
+  featuredImage?: string;
+  gallery?: string[];
+  category?: BlogCategory | string;
+  tags?: (BlogTag | string)[];
+  author: string;
+  status: 'draft' | 'published' | 'archived';
+  publishedAt?: string;
+  scheduledAt?: string;
+  updatedAt?: string;
+
+  // SEO
+  seoTitle?: string;
+  metaDescription?: string;
+  keywords?: string;
+  canonicalUrl?: string;
+  ogImage?: string;
+  twitterImage?: string;
+  customSchema?: string;
+
+  // Relations
+  relatedTours?: string[];
+  faq?: BlogFAQ[];
+
+  // Meta
+  views: number;
+  readingTime?: number;
+  isFeatured: boolean;
+
+  created_at: string;
+}
+
+export type EmailCampaignStatus = 'queued' | 'processing' | 'sent' | 'failed' | 'cancelled';
+
+export interface EmailCampaign {
+  id: string;
+  _id?: string;
+  blogId: string;
+  blogTitle: string;
+  blogSlug: string;
+  blogExcerpt?: string;
+  blogImage?: string;
+  status: EmailCampaignStatus;
+  totalRecipients: number;
+  sentCount: number;
+  failedCount: number;
+  errorMessage?: string;
+  startedAt?: string;
+  completedAt?: string;
   created_at: string;
 }
