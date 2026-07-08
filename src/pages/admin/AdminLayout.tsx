@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, Calendar, MessageSquare, LogOut, Settings, User, Menu, X, Globe, Mail, Search, BookOpen, ChevronDown, ChevronRight, Send } from "lucide-react";
+import { LayoutDashboard, Calendar, MessageSquare, LogOut, Settings, User, Menu, X, Globe, Mail, Search, BookOpen, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 export default function AdminLayout() {
@@ -32,7 +32,6 @@ export default function AdminLayout() {
   const blogSubItems = [
     { name: "All Blogs", path: "/admin/blog" },
     { name: "Categories", path: "/admin/blog/categories" },
-    { name: "Email Campaigns", path: "/admin/blog/campaigns" },
   ];
 
   const isBlogActive = location.pathname.startsWith("/admin/blog");

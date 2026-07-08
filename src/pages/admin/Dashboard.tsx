@@ -174,10 +174,6 @@ export default function Dashboard() {
                 <BookOpen size={20} />
                 <span className="font-black uppercase tracking-widest text-sm">Write Blog Post</span>
               </Link>
-              <Link to="/admin/blog/campaigns" className="w-full p-5 rounded-3xl bg-slate-50 border border-gray-100 text-gray-600 flex items-center gap-4 hover:border-brand-primary hover:text-brand-primary transition-all">
-                <Mail size={20} />
-                <span className="font-black uppercase tracking-widest text-sm">Email Campaigns</span>
-              </Link>
             </div>
           </div>
 

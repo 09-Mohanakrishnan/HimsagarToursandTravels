@@ -204,7 +204,7 @@ export default function BlogDetail() {
   const tags = (blog.tags || []).map(t => (typeof t === "object" ? t as BlogTag : null)).filter(Boolean) as BlogTag[];
   const relatedTours = (blog.relatedTours || []) as any[];
   const publishedDate = blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "";
-  const updatedDate = blog.updated_at ? new Date(blog.updated_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "";
+  const updatedDate = blog.updatedAt ? new Date(blog.updatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "";
   const currentUrl = `${siteSettings.domain}/blog/${blog.slug}`;
 
   return (

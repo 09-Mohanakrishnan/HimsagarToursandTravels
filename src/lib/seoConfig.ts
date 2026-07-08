@@ -75,6 +75,17 @@ export const seoConfig = {
       { name: "Home", item: baseUrl },
       { name: "Tours", item: `${baseUrl}/tours` }
     ])
+  },
+  Blog: {
+    title: `Travel Blog | Tips, Guides & Stories | ${siteName}`,
+    description: "Explore travel guides, spiritual journey tips, tour stories and destination insights from Himsagar Travels — curated by expert travellers.",
+    canonicalPath: "/blog",
+    keywords: "travel blog, tour guides, spiritual journey tips, destination insights, travel stories",
+    robots: "index, follow",
+    schema: generateBreadcrumbSchema([
+      { name: "Home", item: baseUrl },
+      { name: "Blog", item: `${baseUrl}/blog` }
+    ])
   }
 };
 

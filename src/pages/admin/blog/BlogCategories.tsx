@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Edit2, Trash2, ArrowLeft, Check, X, Loader2 } from "lucide-react";
+import { Plus, Edit2, Trash2, ArrowLeft, Check, X, Loader2, Tag } from "lucide-react";
 import { BlogCategory } from "../../../types";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../../lib/utils";
@@ -150,7 +150,7 @@ export default function BlogCategories() {
         </div>
       ) : categories.length === 0 ? (
         <div className="bg-white border border-gray-100 rounded-3xl p-16 text-center">
-          <p className="text-5xl mb-4">🏷️</p>
+          <Tag size={40} className="text-gray-200 mb-4 mx-auto" />
           <p className="text-xl font-serif text-gray-400 mb-2">No categories yet</p>
           <p className="text-sm text-gray-300 mb-6">Create your first category to organise your blog posts.</p>
           <button onClick={() => setShowNewForm(true)} className="inline-flex items-center gap-2 px-6 py-3 bg-brand-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-brand-accent transition-colors">

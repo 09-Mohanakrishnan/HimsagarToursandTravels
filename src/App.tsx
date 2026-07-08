@@ -22,7 +22,7 @@ import BlogDetail from "./pages/BlogDetail";
 import BlogManager from "./pages/admin/blog/BlogManager";
 import BlogEditor from "./pages/admin/blog/BlogEditor";
 import BlogCategories from "./pages/admin/blog/BlogCategories";
-import EmailCampaignMonitor from "./pages/admin/blog/EmailCampaignMonitor";
+
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -104,7 +104,7 @@ export default function App() {
           <Route path="blog/new" element={<BlogEditor />} />
           <Route path="blog/edit/:id" element={<BlogEditor />} />
           <Route path="blog/categories" element={<BlogCategories />} />
-          <Route path="blog/campaigns" element={<EmailCampaignMonitor />} />
+
         </Route>
 
         {/* 404 */}

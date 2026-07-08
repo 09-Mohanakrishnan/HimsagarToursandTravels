@@ -150,22 +150,4 @@ export interface Blog {
   created_at: string;
 }
 
-export type EmailCampaignStatus = 'queued' | 'processing' | 'sent' | 'failed' | 'cancelled';
 
-export interface EmailCampaign {
-  id: string;
-  _id?: string;
-  blogId: string;
-  blogTitle: string;
-  blogSlug: string;
-  blogExcerpt?: string;
-  blogImage?: string;
-  status: EmailCampaignStatus;
-  totalRecipients: number;
-  sentCount: number;
-  failedCount: number;
-  errorMessage?: string;
-  startedAt?: string;
-  completedAt?: string;
-  created_at: string;
-}

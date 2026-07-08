@@ -3,22 +3,21 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import {
   Save, Globe, Eye, ArrowLeft, Upload, X, Plus, Trash2,
   ChevronDown, Image as ImageIcon, Tag, Link as LinkIcon, Loader2,
-  Star, StarOff, Check
+  Star, StarOff, Check, FileEdit, Search, type LucideIcon
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Blog, BlogCategory, BlogTag } from "../../../types";
 import RichTextEditor from "../../../components/RichTextEditor";
 import { cn } from "../../../lib/utils";
 
-type Tab = "content" | "media" | "categorize" | "seo" | "relations" | "publish";
+type Tab = "content" | "media" | "categorize" | "relations" | "publish";
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: "content", label: "Content", icon: "✍️" },
-  { id: "media", label: "Media", icon: "🖼️" },
-  { id: "categorize", label: "Categorize", icon: "🏷️" },
-  { id: "seo", label: "SEO", icon: "🔍" },
-  { id: "relations", label: "Relations & FAQ", icon: "🔗" },
-  { id: "publish", label: "Publish", icon: "🚀" },
+const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
+  { id: "content", label: "Content", icon: FileEdit },
+  { id: "media", label: "Media", icon: ImageIcon },
+  { id: "categorize", label: "Categorize", icon: Tag },
+  { id: "relations", label: "Relations & FAQ", icon: LinkIcon },
+  { id: "publish", label: "Publish", icon: Globe },
 ];
 
 function slugify(text: string): string {
@@ -182,13 +181,6 @@ export default function BlogEditor() {
     author: "Himsagar Travels",
     status: "draft" as "draft" | "published" | "archived",
     isFeatured: false,
-    seoTitle: "",
-    metaDescription: "",
-    keywords: "",
-    canonicalUrl: "",
-    ogImage: "",
-    twitterImage: "",
-    customSchema: "",
     relatedTours: [] as string[],
     faq: [] as { question: string; answer: string }[],
   });
@@ -235,13 +227,6 @@ export default function BlogEditor() {
         author: data.author || "Himsagar Travels",
         status: data.status || "draft",
         isFeatured: data.isFeatured || false,
-        seoTitle: data.seoTitle || "",
-        metaDescription: data.metaDescription || "",
-        keywords: data.keywords || "",
-        canonicalUrl: data.canonicalUrl || "",
-        ogImage: data.ogImage || "",
-        twitterImage: data.twitterImage || "",
-        customSchema: data.customSchema || "",
         relatedTours: (data.relatedTours || []).map((t: any) => (typeof t === "object" ? (t._id || t.id) : t)),
         faq: data.faq || [],
       });
@@ -255,7 +240,6 @@ export default function BlogEditor() {
   const onTitleChange = (title: string) => {
     setField("title", title);
     if (!slugEdited) setField("slug", slugify(title));
-    if (!form.seoTitle) setField("seoTitle", title ? `${title} | Himsagar Travels Blog` : "");
   };
 
   const wordCount = countWords(form.content);
@@ -278,13 +262,6 @@ export default function BlogEditor() {
     fd.append("author", form.author);
     fd.append("status", form.status);
     fd.append("isFeatured", String(form.isFeatured));
-    fd.append("seoTitle", form.seoTitle || `${form.title} | Himsagar Travels Blog`);
-    fd.append("metaDescription", form.metaDescription || form.excerpt.substring(0, 155));
-    fd.append("keywords", form.keywords);
-    fd.append("canonicalUrl", form.canonicalUrl);
-    fd.append("ogImage", form.ogImage || form.featuredImage);
-    fd.append("twitterImage", form.twitterImage || form.featuredImage);
-    fd.append("customSchema", form.customSchema);
     fd.append("relatedTours", JSON.stringify(form.relatedTours));
     fd.append("faq", JSON.stringify(form.faq));
     return fd;
@@ -425,7 +402,7 @@ export default function BlogEditor() {
           {TABS.map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all text-left", activeTab === tab.id ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20" : "text-gray-400 hover:bg-slate-50 hover:text-gray-600")}>
-              <span className="text-base">{tab.icon}</span> {tab.label}
+              <tab.icon size={16} /> {tab.label}
             </button>
           ))}
         </nav>
@@ -544,62 +521,6 @@ export default function BlogEditor() {
                     <label className="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2">Tags</label>
                     <TagSelector available={tags} selected={form.selectedTags} onChange={ids => setField("selectedTags", ids)} />
                   </div>
-                </div>
-              )}
-
-              {/* ── SEO Tab ── */}
-              {activeTab === "seo" && (
-                <div className="space-y-6 bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
-                  <div className="grid grid-cols-1 gap-6">
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">SEO Title <span className="text-gray-300">({(form.seoTitle || "").length}/70)</span></label>
-                      <input type="text" value={form.seoTitle} onChange={e => setField("seoTitle", e.target.value)} maxLength={70}
-                        className="w-full bg-slate-50 border border-gray-100 rounded-2xl py-3 px-4 text-sm text-gray-700 outline-none focus:border-brand-primary" placeholder="SEO optimized title" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">Meta Description <span className="text-gray-300">({(form.metaDescription || "").length}/160)</span></label>
-                      <textarea rows={3} value={form.metaDescription} onChange={e => setField("metaDescription", e.target.value)} maxLength={160}
-                        className="w-full bg-slate-50 border border-gray-100 rounded-2xl py-3 px-4 text-sm text-gray-700 outline-none focus:border-brand-primary resize-none" placeholder="Compelling meta description (140-160 chars recommended)" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">Focus Keywords</label>
-                      <input type="text" value={form.keywords} onChange={e => setField("keywords", e.target.value)}
-                        className="w-full bg-slate-50 border border-gray-100 rounded-2xl py-3 px-4 text-sm text-gray-700 outline-none focus:border-brand-primary" placeholder="keyword1, keyword2, keyword3" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">Canonical URL</label>
-                      <input type="text" value={form.canonicalUrl} onChange={e => setField("canonicalUrl", e.target.value)}
-                        className="w-full bg-slate-50 border border-gray-100 rounded-2xl py-3 px-4 text-sm text-gray-700 outline-none focus:border-brand-primary font-mono" placeholder="https://himsagartravels.com/blog/your-slug" />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">OG Image URL</label>
-                        <input type="text" value={form.ogImage} onChange={e => setField("ogImage", e.target.value)}
-                          className="w-full bg-slate-50 border border-gray-100 rounded-2xl py-3 px-4 text-sm text-gray-700 outline-none focus:border-brand-primary" placeholder="Defaults to featured image" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">Twitter Image URL</label>
-                        <input type="text" value={form.twitterImage} onChange={e => setField("twitterImage", e.target.value)}
-                          className="w-full bg-slate-50 border border-gray-100 rounded-2xl py-3 px-4 text-sm text-gray-700 outline-none focus:border-brand-primary" placeholder="Defaults to featured image" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">Custom JSON-LD Schema</label>
-                      <textarea rows={6} value={form.customSchema} onChange={e => setField("customSchema", e.target.value)}
-                        className="w-full bg-slate-50 border border-gray-100 rounded-2xl py-3 px-4 text-sm text-gray-700 outline-none focus:border-brand-primary resize-none font-mono text-xs"
-                        placeholder='{"@context": "https://schema.org", "@type": "Article", ...}' />
-                    </div>
-                  </div>
-
-                  {/* SEO Preview */}
-                  {(form.seoTitle || form.title) && (
-                    <div className="mt-4 bg-slate-50 rounded-2xl p-5 border border-gray-100">
-                      <p className="text-[9px] uppercase tracking-widest font-black text-gray-300 mb-3">Google Preview</p>
-                      <p className="text-blue-600 text-base font-medium truncate">{form.seoTitle || form.title}</p>
-                      <p className="text-green-700 text-xs">himsagartravels.com › blog › {form.slug || "your-slug"}</p>
-                      <p className="text-gray-600 text-sm mt-1 line-clamp-2">{form.metaDescription || form.excerpt || "No meta description yet."}</p>
-                    </div>
-                  )}
                 </div>
               )}
 

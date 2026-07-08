@@ -316,7 +316,7 @@ export default function BlogManager() {
           [1, 2, 3, 4].map(i => <div key={i} className="h-24 rounded-3xl bg-gray-100 animate-pulse" />)
         ) : blogs.length === 0 ? (
           <div className="bg-white border border-gray-100 rounded-3xl p-16 text-center">
-            <p className="text-5xl mb-4">📝</p>
+            <FileText size={40} className="text-gray-200 mb-4 mx-auto" />
             <p className="text-xl font-serif text-gray-400">No blogs found</p>
             <p className="text-sm text-gray-300 mt-1 mb-6">Create your first article to get started.</p>
             <Link to="/admin/blog/new" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-brand-accent transition-colors">
@@ -343,7 +343,7 @@ export default function BlogManager() {
 
                 {/* Thumbnail */}
                 <div className="w-20 h-16 rounded-2xl overflow-hidden bg-gray-100 shrink-0">
-                  {blog.featuredImage ? <img src={blog.featuredImage} alt={blog.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl">📝</div>}
+                  {blog.featuredImage ? <img src={blog.featuredImage} alt={blog.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><FileText size={20} className="text-gray-300" /></div>}
                 </div>
 
                 {/* Content */}

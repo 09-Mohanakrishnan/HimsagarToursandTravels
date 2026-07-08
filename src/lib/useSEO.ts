@@ -183,8 +183,9 @@ export function useSEO({
 
 const seoCache = new Map<string, any>();
 
-export function useSEOOverride(pageKey: string, defaultConfig: SEOProps) {
+export function useSEOOverride(pageKey: string, defaultConfig: SEOProps): { h1Tag?: string } {
   const [config, setConfig] = useState<SEOProps>(defaultConfig);
+  const [h1Tag, setH1Tag] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     // If config changes from parent (e.g., event data loads), update it initially
@@ -211,6 +212,8 @@ export function useSEOOverride(pageKey: string, defaultConfig: SEOProps) {
       .catch(console.error);
 
     function applyOverride(data: any) {
+      if (data.h1Tag) setH1Tag(data.h1Tag);
+
       setConfig(prev => {
         let newSchema = prev.schema;
         if (data.customSchema) {
@@ -235,4 +238,6 @@ export function useSEOOverride(pageKey: string, defaultConfig: SEOProps) {
   }, [pageKey]);
 
   useSEO(config);
+
+  return { h1Tag };
 }

@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { Search, ArrowRight, Clock, Eye, Calendar, Tag, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ArrowRight, Clock, Eye, Calendar, Tag, ChevronLeft, ChevronRight, BookOpen, FileText } from "lucide-react";
 import { Blog, BlogCategory } from "../types";
 import SubscriptionForm from "../components/SubscriptionForm";
 import { cn } from "../lib/utils";
+import { useSEOOverride } from "../lib/useSEO";
+import { seoConfig } from "../lib/seoConfig";
 
 const HERO_BG = "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&q=80&w=2000";
 
@@ -59,7 +61,7 @@ function BlogCard({ blog, featured = false }: { blog: Blog; featured?: boolean }
             <img src={blog.featuredImage} alt={blog.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-brand-navy/10 to-brand-primary/10 flex items-center justify-center">
-              <span className="text-4xl">✍️</span>
+              <FileText size={32} className="text-gray-300" />
             </div>
           )}
           {category && (
@@ -103,12 +105,8 @@ export default function BlogPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Update document head for SEO
-  useEffect(() => {
-    document.title = "Travel Blog | Tips, Guides & Stories | Himsagar Travels";
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute("content", "Explore travel guides, spiritual journey tips, tour stories and destination insights from Himsagar Travels — curated by expert travellers.");
-  }, []);
+  // SEO Integration
+  const seoResult = useSEOOverride("blog", seoConfig.Blog);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -147,30 +145,48 @@ export default function BlogPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fdfdfd]">
-      {/* ── Hero ── */}
-      <section className="relative h-[55vh] min-h-[420px] flex items-end overflow-hidden">
+    <div className="min-h-screen bg-[#fcfdfd]">
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          HERO — Cinematic full-bleed hero (matching Tours & About)
+      ═══════════════════════════════════════════════════════════════════════ */}
+      <section className="relative min-h-[75vh] flex items-center justify-center overflow-hidden pt-28">
+        {/* Background Image */}
         <div className="absolute inset-0">
-          <img src={HERO_BG} alt="Travel Blog" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+          <img
+            src={HERO_BG}
+            alt="Travel Blog"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-brand-navy/70 via-brand-navy/50 to-brand-navy/80" />
         </div>
-        <div className="relative container mx-auto px-6 md:px-12 pb-16">
-          {/* Breadcrumb */}
-          <nav className="mb-6 flex items-center gap-2 text-white/50 text-xs uppercase tracking-widest font-bold">
-            <Link to="/" className="hover:text-brand-primary transition-colors">Home</Link>
-            <span>/</span>
-            <span className="text-white/80">Blog</span>
-          </nav>
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
-            <p className="text-brand-primary text-[10px] uppercase tracking-[0.4em] font-black mb-3">Himsagar Travels</p>
-            <h1 className="text-4xl md:text-6xl font-serif font-black text-white leading-tight mb-4">
-              Travel Stories &<br />Guides
+
+        {/* Floating geometric accents */}
+        <div className="absolute top-24 right-16 w-64 h-64 border border-white/[0.05] rounded-full" />
+        <div className="absolute bottom-20 left-12 w-40 h-40 border border-brand-primary/10 rounded-full" />
+
+        {/* Hero Content */}
+        <div className="relative z-10 container mx-auto px-6 md:px-12 text-center max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+          >
+            <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/15 rounded-full px-6 py-2.5 mb-10">
+              <BookOpen size={12} className="text-brand-primary" />
+              <span className="text-white/80 text-[10px] uppercase tracking-[0.4em] font-bold">Travel Stories & Guides</span>
+            </div>
+            <h1 className="text-5xl md:text-7xl lg:text-[6.5rem] font-serif font-black tracking-tighter text-white leading-[0.9] mb-8">
+              {seoResult?.h1Tag ? seoResult.h1Tag : (<>Our<br /><span className="text-brand-primary">Journal</span></>)}
             </h1>
-            <p className="text-white/60 max-w-lg text-base">
+            <p className="text-white/55 text-lg md:text-xl font-light leading-relaxed max-w-2xl mx-auto">
               Expert insights, spiritual journeys, and destination guides curated for the discerning traveller.
             </p>
           </motion.div>
         </div>
+
+        {/* Bottom fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#fcfdfd] to-transparent" />
       </section>
 
       {/* ── Search Bar ── */}
@@ -234,7 +250,7 @@ export default function BlogPage() {
               </div>
             ) : blogs.length === 0 ? (
               <div className="text-center py-24 bg-white rounded-[2rem] border border-gray-100">
-                <p className="text-5xl mb-4">📝</p>
+                <Search size={40} className="text-gray-200 mb-4 mx-auto" />
                 <p className="text-xl font-serif text-gray-400">No articles found</p>
                 <p className="text-sm text-gray-300 mt-2">Try a different search or category</p>
               </div>

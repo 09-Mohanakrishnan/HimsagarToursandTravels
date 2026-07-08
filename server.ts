@@ -9,7 +9,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
-import nodemailer from "nodemailer";
+
 
 
 dotenv.config();
@@ -127,8 +127,9 @@ const Subscription = mongoose.model("Subscription", subscriptionSchema);
 
 
 const seoConfigSchema = new mongoose.Schema({
-  pageKey: { type: String, required: true, unique: true }, // "home", "about", "contact", "events", "event::{slug}"
+  pageKey: { type: String, required: true, unique: true }, // "home", "about", "contact", "events", "blog", "event::{slug}", "blog::{slug}"
   seoTitle: String,
+  h1Tag: String,
   metaDescription: String,
   keywords: String,
   canonicalUrl: String,
@@ -209,22 +210,7 @@ blogSchema.index({ status: 1, publishedAt: -1 });
 blogSchema.index({ "category": 1, status: 1 });
 const BlogPost = mongoose.model("BlogPost", blogSchema);
 
-const emailQueueSchema = new mongoose.Schema({
-  blogId: { type: mongoose.Schema.Types.ObjectId, ref: "BlogPost" },
-  blogTitle: String,
-  blogSlug: String,
-  blogExcerpt: String,
-  blogImage: String,
-  status: { type: String, default: "queued", enum: ["queued", "processing", "sent", "failed", "cancelled"] },
-  totalRecipients: { type: Number, default: 0 },
-  sentCount: { type: Number, default: 0 },
-  failedCount: { type: Number, default: 0 },
-  errorMessage: String,
-  startedAt: Date,
-  completedAt: Date,
-  created_at: { type: Date, default: Date.now },
-});
-const EmailQueue = mongoose.model("EmailQueue", emailQueueSchema);
+
 
 
 
@@ -347,165 +333,7 @@ const calculateReadingTime = (html: string): number => {
   return Math.max(1, Math.ceil(words / 200));
 };
 
-// ─── Email Service ────────────────────────────────────────────────────────────
 
-/** Create a Nodemailer transporter if SMTP env vars are configured */
-const createEmailTransporter = () => {
-  const host = process.env.SMTP_HOST;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-  if (!host || !user || !pass) return null;
-  return nodemailer.createTransport({
-    host,
-    port: Number(process.env.SMTP_PORT) || 587,
-    secure: process.env.SMTP_SECURE === "true",
-    auth: { user, pass },
-  });
-};
-
-/** Generate professional HTML email template for blog notification */
-const buildBlogEmailHtml = (blog: any, domain: string, queueId: string) => {
-  const readMoreUrl = `${domain}/blog/${blog.slug}`;
-  const unsubscribeUrl = `${domain}/unsubscribe?token={{TOKEN}}`;
-  const logoUrl = `${domain}/logo.png`;
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>${blog.title}</title>
-</head>
-<body style="margin:0;padding:0;background:#f8fafc;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:32px 0;">
-    <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);max-width:600px;width:100%;">
-        <!-- Header -->
-        <tr>
-          <td style="background:#0f172a;padding:28px 40px;text-align:center;">
-            <img src="${logoUrl}" alt="Himsagar Travels" height="48" style="height:48px;object-fit:contain;filter:brightness(0) invert(1);" onerror="this.style.display='none'" />
-            <p style="color:#c29d44;font-size:10px;letter-spacing:4px;text-transform:uppercase;margin:12px 0 0;font-weight:700;">New From Our Blog</p>
-          </td>
-        </tr>
-        ${blog.featuredImage ? `
-        <!-- Featured Image -->
-        <tr>
-          <td style="padding:0;">
-            <img src="${blog.featuredImage}" alt="${blog.title}" style="width:100%;height:260px;object-fit:cover;display:block;" />
-          </td>
-        </tr>` : ""}
-        <!-- Content -->
-        <tr>
-          <td style="padding:40px 40px 32px;">
-            ${blog.category ? `<p style="color:#c29d44;font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;margin:0 0 16px;">${typeof blog.category === 'object' ? blog.category.name : blog.category}</p>` : ""}
-            <h1 style="color:#0f172a;font-size:26px;font-weight:800;line-height:1.3;margin:0 0 20px;">${blog.title}</h1>
-            <p style="color:#64748b;font-size:14px;line-height:1.8;margin:0 0 32px;">${blog.excerpt || ""}</p>
-            <div style="text-align:center;">
-              <a href="${readMoreUrl}" style="display:inline-block;background:#c29d44;color:#ffffff;text-decoration:none;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:16px 40px;border-radius:50px;">Read Full Article →</a>
-            </div>
-          </td>
-        </tr>
-        <!-- Divider -->
-        <tr><td style="padding:0 40px;"><hr style="border:none;border-top:1px solid #f1f5f9;" /></td></tr>
-        <!-- Footer -->
-        <tr>
-          <td style="padding:28px 40px;text-align:center;">
-            <p style="color:#94a3b8;font-size:12px;margin:0 0 8px;">You are receiving this because you subscribed to Himsagar Travels updates.</p>
-            <p style="margin:0;">
-              <a href="${unsubscribeUrl}" style="color:#94a3b8;font-size:11px;text-decoration:underline;">Unsubscribe</a>
-              &nbsp;·&nbsp;
-              <a href="${domain}" style="color:#94a3b8;font-size:11px;text-decoration:none;">himsagartravels.com</a>
-            </p>
-          </td>
-        </tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-};
-
-/** Async email queue processor — runs in background, does NOT block API response */
-const processEmailQueue = async (queueId: string, blog: any, domain: string) => {
-  const transporter = createEmailTransporter();
-  const fromAddress = process.env.SMTP_FROM || "Himsagar Travels <noreply@himsagartravels.com>";
-
-  try {
-    await EmailQueue.findByIdAndUpdate(queueId, { status: "processing", startedAt: new Date() });
-
-    const subscribers = await Subscription.find({ status: { $ne: "unsubscribed" } });
-    const total = subscribers.length;
-    await EmailQueue.findByIdAndUpdate(queueId, { totalRecipients: total });
-
-    if (!transporter) {
-      console.warn("⚠️  SMTP not configured — email queue marked as failed.");
-      await EmailQueue.findByIdAndUpdate(queueId, {
-        status: "failed",
-        errorMessage: "SMTP not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASS in environment.",
-        completedAt: new Date(),
-      });
-      return;
-    }
-
-    let sent = 0;
-    let failed = 0;
-    const BATCH_SIZE = 50;
-
-    for (let i = 0; i < subscribers.length; i += BATCH_SIZE) {
-      // Check if cancelled
-      const current = await EmailQueue.findById(queueId);
-      if (current?.status === "cancelled") {
-        console.log(`Email campaign ${queueId} cancelled at batch ${i}`);
-        return;
-      }
-
-      const batch = subscribers.slice(i, i + BATCH_SIZE);
-      await Promise.allSettled(
-        batch.map(async (sub) => {
-          try {
-            const html = buildBlogEmailHtml(blog, domain, queueId);
-            await transporter.sendMail({
-              from: fromAddress,
-              to: sub.email,
-              subject: `✈️ New Blog: ${blog.title} | Himsagar Travels`,
-              html,
-            });
-            // Track on subscriber
-            await Subscription.findByIdAndUpdate(sub._id, {
-              lastEmailSent: new Date(),
-              $inc: { totalEmailsReceived: 1 },
-            });
-            sent++;
-          } catch (err: any) {
-            console.error(`Failed to send to ${sub.email}:`, err.message);
-            failed++;
-          }
-        })
-      );
-
-      await EmailQueue.findByIdAndUpdate(queueId, { sentCount: sent, failedCount: failed });
-
-      // Small delay between batches
-      if (i + BATCH_SIZE < subscribers.length) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-    }
-
-    await EmailQueue.findByIdAndUpdate(queueId, {
-      status: failed === total ? "failed" : "sent",
-      sentCount: sent,
-      failedCount: failed,
-      completedAt: new Date(),
-    });
-    console.log(`✅ Email campaign ${queueId} complete: ${sent} sent, ${failed} failed`);
-  } catch (err: any) {
-    console.error("Email queue processing error:", err);
-    await EmailQueue.findByIdAndUpdate(queueId, {
-      status: "failed",
-      errorMessage: err.message,
-      completedAt: new Date(),
-    });
-  }
-};
 
 
 
@@ -1198,14 +1026,48 @@ async function startServer() {
 
   app.put("/api/admin/seo/:pageKey", authenticateToken, async (req, res) => {
     try {
-      const config = await SeoConfig.findOneAndUpdate(
-        { pageKey: req.params.pageKey },
-        { ...req.body, updated_at: new Date() },
-        { new: true, upsert: true }
-      );
+      const oldPageKey = req.params.pageKey;
+      let newPageKey = oldPageKey;
+      let updateData = { ...req.body, updated_at: new Date() };
+
+      // Handle Slug update for dynamic pages
+      if (req.body.slug && (oldPageKey.startsWith("event::") || oldPageKey.startsWith("blog::"))) {
+        const type = oldPageKey.split("::")[0];
+        const oldSlug = oldPageKey.split("::")[1];
+        const newSlug = req.body.slug;
+
+        if (oldSlug !== newSlug) {
+          if (!/^[a-z0-9-]+$/.test(newSlug)) {
+            return res.status(400).json({ error: "Invalid slug format. Use lowercase letters, numbers, and hyphens only." });
+          }
+          
+          if (type === "event") {
+            const existing = await Event.findOne({ slug: newSlug });
+            if (existing) return res.status(400).json({ error: "Slug already exists for another tour." });
+            await Event.updateOne({ slug: oldSlug }, { slug: newSlug });
+          } else if (type === "blog") {
+            const existing = await BlogPost.findOne({ slug: newSlug });
+            if (existing) return res.status(400).json({ error: "Slug already exists for another blog." });
+            await BlogPost.updateOne({ slug: oldSlug }, { slug: newSlug });
+          }
+          
+          newPageKey = `${type}::${newSlug}`;
+          updateData.pageKey = newPageKey;
+        }
+      }
+
+      let config = await SeoConfig.findOne({ pageKey: oldPageKey });
+      if (config) {
+        Object.assign(config, updateData);
+        await config.save();
+      } else {
+        config = await SeoConfig.create({ pageKey: newPageKey, ...updateData });
+      }
+
       res.json(config);
-    } catch (err) {
-      res.status(500).json({ error: "Failed to update SEO config" });
+    } catch (err: any) {
+      console.error("SEO update error:", err);
+      res.status(500).json({ error: "Failed to update SEO config", details: err.message });
     }
   });
 
@@ -1230,7 +1092,8 @@ async function startServer() {
         { key: "home", label: "Home Page", path: "/" },
         { key: "about", label: "About Us", path: "/about" },
         { key: "contact", label: "Contact Us", path: "/contact" },
-        { key: "events", label: "Tours / Events", path: "/tours" }
+        { key: "events", label: "Tours / Events", path: "/tours" },
+        { key: "blog", label: "Blog", path: "/blog" }
       ];
 
       const pages: any[] = [];
@@ -1302,6 +1165,13 @@ async function startServer() {
       events.forEach((e: any) => {
         const pk = `event::${e.slug}`;
         buildPage(pk, e.title, `/tours/${e.slug}`, `${e.title} | Himsagar Travels`, (e.description || "").substring(0, 160), e.images?.[0] || "", true);
+      });
+
+      // Blog posts
+      const publishedBlogs = await BlogPost.find({ status: "published" }).select("title slug excerpt featuredImage");
+      publishedBlogs.forEach((b: any) => {
+        const pk = `blog::${b.slug}`;
+        buildPage(pk, b.title, `/blog/${b.slug}`, `${b.title} | Himsagar Travels`, (b.excerpt || "").substring(0, 160), b.featuredImage || "", false);
       });
 
       // Find duplicates
@@ -1775,7 +1645,7 @@ async function startServer() {
     } catch { res.status(500).json({ error: "Failed to delete blog" }); }
   });
 
-  // POST /api/admin/blogs/:id/publish — Publish blog (with optional email notification)
+  // POST /api/admin/blogs/:id/publish — Publish blog
   app.post("/api/admin/blogs/:id/publish", authenticateToken, async (req, res) => {
     try {
       const blog = await BlogPost.findByIdAndUpdate(req.params.id, {
@@ -1784,27 +1654,7 @@ async function startServer() {
         updated_at: new Date(),
       }, { new: true }).populate("category", "name slug color");
       if (!blog) return res.status(404).json({ error: "Blog not found" });
-
-      let campaign = null;
-      const sendEmail = req.body.sendEmail === true || req.body.sendEmail === "true";
-      if (sendEmail) {
-        const content = await SiteContent.findOne().sort({ created_at: -1 });
-        const domain = content?.site_domain || "https://himsagartravels.com";
-        const subscriberCount = await Subscription.countDocuments({ status: { $ne: "unsubscribed" } });
-        const queue = await EmailQueue.create({
-          blogId: blog._id,
-          blogTitle: blog.title,
-          blogSlug: blog.slug,
-          blogExcerpt: blog.excerpt,
-          blogImage: blog.featuredImage,
-          totalRecipients: subscriberCount,
-        });
-        campaign = { ...queue.toObject(), id: queue._id };
-        // Fire-and-forget: process queue asynchronously
-        const blogObj = blog.toObject();
-        setImmediate(() => processEmailQueue(queue._id.toString(), blogObj, domain));
-      }
-      res.json({ blog: { ...blog.toObject(), id: blog._id }, campaign });
+      res.json({ blog: { ...blog.toObject(), id: blog._id } });
     } catch (err: any) {
       console.error("Error publishing blog:", err);
       res.status(500).json({ error: "Failed to publish blog", details: err.message });
@@ -1937,69 +1787,7 @@ async function startServer() {
     } catch { res.status(500).json({ error: "Failed to delete tag" }); }
   });
 
-  // ─── Email Campaign Admin APIs ────────────────────────────────────────────
 
-  app.get("/api/admin/email-campaigns", authenticateToken, async (req, res) => {
-    try {
-      const campaigns = await EmailQueue.find({}).sort({ created_at: -1 }).limit(50);
-      res.json(campaigns.map(c => ({ ...c.toObject(), id: c._id })));
-    } catch { res.status(500).json({ error: "Failed to fetch campaigns" }); }
-  });
-
-  app.get("/api/admin/email-campaigns/stats", authenticateToken, async (req, res) => {
-    try {
-      const [total, queued, processing, sent, failed, cancelled, subscribers] = await Promise.all([
-        EmailQueue.countDocuments(),
-        EmailQueue.countDocuments({ status: "queued" }),
-        EmailQueue.countDocuments({ status: "processing" }),
-        EmailQueue.countDocuments({ status: "sent" }),
-        EmailQueue.countDocuments({ status: "failed" }),
-        EmailQueue.countDocuments({ status: "cancelled" }),
-        Subscription.countDocuments({ status: { $ne: "unsubscribed" } }),
-      ]);
-      const totalSent = await EmailQueue.aggregate([
-        { $group: { _id: null, total: { $sum: "$sentCount" } } }
-      ]);
-      res.json({ total, queued, processing, sent, failed, cancelled, subscribers, totalEmailsSent: totalSent[0]?.total || 0 });
-    } catch { res.status(500).json({ error: "Failed to fetch stats" }); }
-  });
-
-  app.get("/api/admin/email-campaigns/:id", authenticateToken, async (req, res) => {
-    try {
-      const campaign = await EmailQueue.findById(req.params.id);
-      if (!campaign) return res.status(404).json({ error: "Not found" });
-      res.json({ ...campaign.toObject(), id: campaign._id });
-    } catch { res.status(500).json({ error: "Failed to fetch campaign" }); }
-  });
-
-  app.post("/api/admin/email-campaigns/:id/retry", authenticateToken, async (req, res) => {
-    try {
-      const campaign = await EmailQueue.findById(req.params.id);
-      if (!campaign) return res.status(404).json({ error: "Not found" });
-      if (campaign.status !== "failed" && campaign.status !== "cancelled") {
-        return res.status(400).json({ error: "Only failed or cancelled campaigns can be retried" });
-      }
-      const blog = await BlogPost.findById(campaign.blogId).populate("category", "name slug");
-      if (!blog) return res.status(404).json({ error: "Blog not found" });
-      await EmailQueue.findByIdAndUpdate(req.params.id, {
-        status: "queued", sentCount: 0, failedCount: 0, errorMessage: "", startedAt: null, completedAt: null
-      });
-      const content = await SiteContent.findOne().sort({ created_at: -1 });
-      const domain = content?.site_domain || "https://himsagartravels.com";
-      setImmediate(() => processEmailQueue(req.params.id, blog.toObject(), domain));
-      res.json({ success: true, message: "Campaign queued for retry" });
-    } catch { res.status(500).json({ error: "Failed to retry campaign" }); }
-  });
-
-  app.delete("/api/admin/email-campaigns/:id/cancel", authenticateToken, async (req, res) => {
-    try {
-      const campaign = await EmailQueue.findByIdAndUpdate(req.params.id,
-        { status: "cancelled", completedAt: new Date() }, { new: true }
-      );
-      if (!campaign) return res.status(404).json({ error: "Not found" });
-      res.json({ success: true });
-    } catch { res.status(500).json({ error: "Failed to cancel campaign" }); }
-  });
 
   // Vite SSR / SPA — enable only in development. In production serve built assets directly.
 
