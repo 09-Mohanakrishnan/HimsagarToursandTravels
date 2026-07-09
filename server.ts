@@ -1645,6 +1645,62 @@ async function startServer() {
     } catch { res.status(500).json({ error: "Failed to delete blog" }); }
   });
 
+  // ─── Media Library (For Editor) ───────────────────────────────────────────────
+
+  // GET /api/admin/media — Fetch recent images
+  app.get("/api/admin/media", authenticateToken, async (req, res) => {
+    try {
+      // Fetch up to 50 recent images from Cloudinary's himsagar-tours folder
+      const result = await cloudinary.search
+        .expression('folder:himsagar-tours AND resource_type:image')
+        .sort_by('created_at', 'desc')
+        .max_results(50)
+        .execute();
+      
+      const images = result.resources.map((r: any) => ({
+        url: r.secure_url || r.url,
+        public_id: r.public_id,
+        created_at: r.created_at,
+        format: r.format,
+        width: r.width,
+        height: r.height,
+      }));
+      res.json(images);
+    } catch (err: any) {
+      console.error("Failed to fetch media:", err);
+      // Fallback if search API is not enabled on this Cloudinary plan
+      try {
+        const result = await cloudinary.api.resources({
+          type: 'upload',
+          prefix: 'himsagar-tours/',
+          max_results: 50,
+        });
+        const images = result.resources.map((r: any) => ({
+          url: r.secure_url || r.url,
+          public_id: r.public_id,
+          created_at: r.created_at,
+          format: r.format,
+          width: r.width,
+          height: r.height,
+        }));
+        res.json(images);
+      } catch (fallbackErr) {
+        res.status(500).json({ error: "Failed to fetch media library" });
+      }
+    }
+  });
+
+  // POST /api/admin/media/upload — Upload standalone image
+  app.post("/api/admin/media/upload", authenticateToken, upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+      const url = await uploadBufferToCloudinary(req.file.buffer as Buffer, req.file.mimetype, req.file.originalname);
+      res.json({ url });
+    } catch (err: any) {
+      res.status(500).json({ error: "Failed to upload image", details: err.message });
+    }
+  });
+
   // POST /api/admin/blogs/:id/publish — Publish blog
   app.post("/api/admin/blogs/:id/publish", authenticateToken, async (req, res) => {
     try {

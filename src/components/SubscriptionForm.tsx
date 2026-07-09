@@ -10,6 +10,7 @@ type SubscriptionFormProps = {
   placeholder?: string;
   className?: string;
   hideHeader?: boolean;
+  theme?: "light" | "dark";
 };
 
 export default function SubscriptionForm({
@@ -20,6 +21,7 @@ export default function SubscriptionForm({
   placeholder = "Enter your email address",
   className = "",
   hideHeader = false,
+  theme = "dark",
 }: SubscriptionFormProps) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "success" | "error" | "duplicate">("idle");
@@ -89,8 +91,8 @@ export default function SubscriptionForm({
     <div className={cn("space-y-4", className)}>
       {!hideHeader && (
         <div>
-          <p className="text-[10px] uppercase tracking-[0.4em] font-black text-brand-primary mb-3">{title}</p>
-          <p className="text-sm text-white/70 leading-relaxed">{description}</p>
+          <p className={cn("text-[10px] uppercase tracking-[0.4em] font-black mb-3", theme === "dark" ? "text-brand-primary" : "text-brand-primary")}>{title}</p>
+          <p className={cn("text-sm leading-relaxed", theme === "dark" ? "text-white/70" : "text-gray-500")}>{description}</p>
         </div>
       )}
 
@@ -102,7 +104,12 @@ export default function SubscriptionForm({
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder={placeholder}
-          className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-white placeholder-white/40 outline-none focus:border-brand-primary transition-colors"
+          className={cn(
+            "w-full border rounded-xl py-3 px-4 outline-none focus:border-brand-primary transition-colors",
+            theme === "dark" 
+              ? "bg-white/5 border-white/10 text-white placeholder-white/40" 
+              : "bg-white border-gray-200 text-gray-800 placeholder-gray-400"
+          )}
         />
         <button
           type="submit"

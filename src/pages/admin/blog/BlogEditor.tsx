@@ -186,6 +186,9 @@ export default function BlogEditor() {
   });
   const [slugEdited, setSlugEdited] = useState(false);
 
+  const formRef = useRef(form);
+  useEffect(() => { formRef.current = form; }, [form]);
+
   const token = () => localStorage.getItem("adminToken") || "";
   const authHeader = () => ({ Authorization: `Bearer ${token()}` });
 
@@ -234,6 +237,76 @@ export default function BlogEditor() {
     }).catch(() => showToast("Failed to load blog", "error"))
     .finally(() => setLoadingPage(false));
   }, [id]);
+
+  // Auto-Save Effect
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const currentForm = formRef.current;
+      // Skip if missing required title or already saving/publishing
+      if (!currentForm.title.trim() || saving || publishing) return;
+
+      try {
+        const fd = new FormData();
+        fd.append("title", currentForm.title);
+        fd.append("slug", currentForm.slug);
+        fd.append("excerpt", currentForm.excerpt);
+        fd.append("content", currentForm.content);
+        if (currentForm.featuredImageFile) fd.append("featuredImageFile", currentForm.featuredImageFile);
+        else fd.append("featuredImage", currentForm.featuredImage);
+        fd.append("gallery", JSON.stringify(currentForm.gallery));
+        fd.append("category", currentForm.category);
+        fd.append("tags", JSON.stringify(currentForm.selectedTags));
+        fd.append("author", currentForm.author);
+        fd.append("status", currentForm.status);
+        fd.append("isFeatured", String(currentForm.isFeatured));
+        fd.append("relatedTours", JSON.stringify(currentForm.relatedTours));
+        fd.append("faq", JSON.stringify(currentForm.faq));
+
+        const url = isEditing ? `/api/admin/blogs/${id}` : "/api/admin/blogs";
+        const method = isEditing ? "PUT" : "POST";
+        const res = await fetch(url, { method, headers: authHeader(), body: fd });
+        
+        if (res.ok && !isEditing) {
+          const saved = await res.json();
+          if (saved._id || saved.id) {
+            localStorage.removeItem("draft_blog_new");
+            navigate(`/admin/blog/edit/${saved._id || saved.id}`, { replace: true });
+          }
+        }
+      } catch (e) {
+        // Silent fail for auto-save
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [saving, publishing, isEditing, id, navigate]);
+
+  // Draft Recovery for new posts
+  useEffect(() => {
+    if (!isEditing) {
+      const draftStr = localStorage.getItem("draft_blog_new");
+      if (draftStr) {
+        try {
+          const parsed = JSON.parse(draftStr);
+          if (parsed.title || parsed.content) {
+            if (window.confirm("You have an unsaved draft. Do you want to recover it?")) {
+              setForm(f => ({ ...f, ...parsed, status: "draft" }));
+              setSlugEdited(true);
+            } else {
+              localStorage.removeItem("draft_blog_new");
+            }
+          }
+        } catch(e){}
+      }
+    }
+  }, [isEditing]);
+
+  // Save to local storage continuously for new drafts
+  useEffect(() => {
+    if (!isEditing && (form.title || form.content)) {
+      localStorage.setItem("draft_blog_new", JSON.stringify(form));
+    }
+  }, [form, isEditing]);
 
   const setField = (key: keyof typeof form, value: any) => setForm(f => ({ ...f, [key]: value }));
 

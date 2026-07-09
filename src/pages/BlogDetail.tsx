@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import {
   Calendar, Clock, Eye, Tag, ChevronLeft, ChevronRight, ArrowLeft,
-  Share2, Copy, Check, ChevronDown, ChevronUp, MapPin, Phone
+  Share2, Copy, Check, ChevronDown, ChevronUp, MapPin, Phone, List
 } from "lucide-react";
 import { Blog, BlogCategory, BlogTag, TravelEvent } from "../types";
 import SubscriptionForm from "../components/SubscriptionForm";
@@ -86,10 +86,33 @@ export default function BlogDetail() {
   const navigate = useNavigate();
   const [blog, setBlog] = useState<Blog | null>(null);
   const [relatedBlogs, setRelatedBlogs] = useState<Blog[]>([]);
-  const [prevNext, setPrevNext] = useState<{ prev: Blog | null; next: Blog | null }>({ prev: null, next: null });
+  const [prevNext, setPrevNext] = useState<{ prev?: Blog, next?: Blog }>({});
+  const [toc, setToc] = useState<{ id: string, title: string, level: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [siteSettings, setSiteSettings] = useState({ domain: "https://himsagartravels.com", phone: "+91 78457 38386", email: "concierge@himsagar.com" });
+
+  // Parse HTML and create TOC
+  useEffect(() => {
+    if (blog && !loading && !notFound) {
+      setTimeout(() => {
+        const contentDiv = document.querySelector('.rich-content');
+        if (contentDiv) {
+          const headings = Array.from(contentDiv.querySelectorAll('h2, h3'));
+          const tocData = headings.map((h, i) => {
+            const id = h.id || `heading-${i}`;
+            if (!h.id) h.id = id;
+            return {
+              id,
+              title: h.textContent || '',
+              level: h.tagName === 'H2' ? 2 : 3
+            };
+          });
+          setToc(tocData);
+        }
+      }, 100); 
+    }
+  }, [blog, loading, notFound]);
 
   useEffect(() => {
     fetch("/api/content").then(r => r.json()).then(d => {
@@ -367,7 +390,7 @@ export default function BlogDetail() {
             <section className="mt-10 bg-slate-50 border border-gray-100 rounded-[2rem] p-8">
               <h3 className="text-lg font-serif font-black text-gray-800 mb-2">Get More Travel Stories</h3>
               <p className="text-sm text-gray-400 mb-6">Subscribe to our newsletter and never miss an exclusive guide or tour announcement.</p>
-              <SubscriptionForm source="blog-detail" title="" description="" buttonLabel="Subscribe Free" />
+              <SubscriptionForm source="blog-detail" title="" description="" buttonLabel="Subscribe Free" theme="light" />
             </section>
 
             {/* Prev / Next Navigation */}
@@ -395,11 +418,37 @@ export default function BlogDetail() {
             )}
           </article>
 
-          {/* ── Sidebar ── */}
-          <aside className="hidden lg:block w-72 shrink-0 space-y-8 sticky top-24">
+          <aside className="hidden lg:block w-72 shrink-0 space-y-8 sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto no-scrollbar pb-10">
             <Link to="/blog" className="flex items-center gap-2 text-xs uppercase tracking-widest font-black text-gray-400 hover:text-brand-primary transition-colors">
               <ArrowLeft size={14} /> Back to Blog
             </Link>
+
+            {/* Table of Contents */}
+            {toc.length > 0 && (
+              <div className="bg-white border border-gray-100 rounded-[2rem] p-6 shadow-sm">
+                <h3 className="text-[10px] uppercase tracking-[0.4em] font-black text-brand-primary mb-4 flex items-center gap-2">
+                  <List size={12} /> Table of Contents
+                </h3>
+                <nav className="space-y-3 relative before:absolute before:left-[3px] before:top-2 before:bottom-2 before:w-[1px] before:bg-gray-100">
+                  {toc.map((item) => (
+                    <a 
+                      key={item.id} 
+                      href={`#${item.id}`} 
+                      className={cn(
+                        "block text-sm text-gray-500 hover:text-brand-primary transition-colors relative",
+                        item.level === 3 ? "pl-5" : "pl-3 font-medium",
+                      )}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                    >
+                      {item.title}
+                    </a>
+                  ))}
+                </nav>
+              </div>
+            )}
 
             {relatedBlogs.length > 0 && (
               <div className="bg-white border border-gray-100 rounded-[2rem] p-6 shadow-sm">
