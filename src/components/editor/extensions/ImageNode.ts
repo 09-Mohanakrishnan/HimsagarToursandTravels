@@ -40,6 +40,17 @@ export const ResizableImage = Node.create({
     return [
       {
         tag: 'figure[data-type="resizable-image"]',
+        getAttrs: (element) => {
+          if (typeof element === 'string') return {};
+          const img = element.querySelector('img');
+          return {
+            src: img?.getAttribute('src') || null,
+            alt: img?.getAttribute('alt') || null,
+            title: img?.getAttribute('title') || null,
+            width: element.style.width || '100%',
+            align: element.style.textAlign || 'center',
+          };
+        }
       },
     ];
   },
