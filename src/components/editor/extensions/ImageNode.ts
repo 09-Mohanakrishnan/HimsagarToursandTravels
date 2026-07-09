@@ -45,8 +45,9 @@ export const ResizableImage = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['figure', mergeAttributes({ 'data-type': 'resizable-image' }), 
-      ['img', mergeAttributes(HTMLAttributes)],
+    const { src, alt, title, width, align, ...rest } = HTMLAttributes;
+    return ['figure', mergeAttributes({ 'data-type': 'resizable-image', style: `width: ${width || '100%'}; text-align: ${align || 'center'}` }, rest), 
+      ['img', { src, alt, title }],
       ['figcaption', 0]
     ];
   },

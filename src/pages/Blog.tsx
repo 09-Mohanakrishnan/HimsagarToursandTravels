@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { Search, ArrowRight, Clock, Eye, Calendar, Tag, ChevronLeft, ChevronRight, BookOpen, FileText } from "lucide-react";
+import { Search, ArrowRight, Clock, Eye, Calendar, Tag, ChevronLeft, ChevronRight, BookOpen, FileText, MapPin, Compass, Phone } from "lucide-react";
 import { Blog, BlogCategory } from "../types";
-import SubscriptionForm from "../components/SubscriptionForm";
 import { cn } from "../lib/utils";
 import { useSEOOverride } from "../lib/useSEO";
 import { seoConfig } from "../lib/seoConfig";
 
-const HERO_BG = "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&q=80&w=2000";
+const HERO_BG = "/images/blog-hero.png";
 
 function BlogCard({ blog, featured = false }: { blog: Blog; featured?: boolean }) {
   const category = typeof blog.category === "object" ? blog.category : null;
@@ -334,27 +333,63 @@ export default function BlogPage() {
               </div>
             )}
 
-            {/* Newsletter */}
+            {/* Start Your Journey CTA */}
             <div className="bg-brand-navy rounded-[2rem] p-6">
-              <p className="text-[9px] uppercase tracking-[0.4em] font-black text-brand-primary mb-2">Newsletter</p>
-              <h3 className="text-white font-serif text-lg mb-3 leading-snug">Get travel stories in your inbox</h3>
-              <SubscriptionForm
-                source="blog-sidebar"
-                title=""
-                description=""
-                buttonLabel="Subscribe Free"
-              />
+              <div className="w-10 h-10 rounded-xl bg-brand-primary/15 flex items-center justify-center mb-4">
+                <Compass size={18} className="text-brand-primary" />
+              </div>
+              <p className="text-[9px] uppercase tracking-[0.4em] font-black text-brand-primary mb-2">Start Your Journey</p>
+              <h3 className="text-white font-serif text-lg mb-3 leading-snug">Ready to turn inspiration into adventure?</h3>
+              <p className="text-white/40 text-sm mb-5 leading-relaxed">Our expert curators craft personalised itineraries for every kind of traveller.</p>
+              <Link to="/contact" className="block w-full py-3 bg-brand-primary text-white rounded-xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-brand-accent transition-colors text-center mb-3">
+                Get a Free Quote
+              </Link>
+              <Link to="/tours" className="block w-full py-3 bg-white/5 border border-white/10 text-white/70 rounded-xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-white/10 transition-colors text-center">
+                Explore Tours
+              </Link>
             </div>
           </aside>
         </div>
 
-        {/* ── Newsletter CTA ── */}
-        <section className="mt-24 bg-brand-navy rounded-[3rem] p-12 md:p-16 text-center">
-          <p className="text-brand-primary text-[10px] uppercase tracking-[0.4em] font-black mb-4">Stay Inspired</p>
-          <h2 className="text-3xl md:text-5xl font-serif font-black text-white mb-4">Never Miss a Journey</h2>
-          <p className="text-white/50 max-w-xl mx-auto mb-8">Join thousands of travellers receiving our exclusive stories, guides, and early-access tour announcements.</p>
-          <div className="max-w-md mx-auto">
-            <SubscriptionForm source="blog-cta" title="" description="" buttonLabel="Subscribe to Blog" />
+        {/* ── Explore Journeys CTA ── */}
+        <section className="mt-24 bg-brand-navy rounded-[3rem] p-12 md:p-16 relative overflow-hidden">
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-brand-primary/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-60 h-60 bg-brand-primary/5 rounded-full blur-3xl" />
+          
+          <div className="relative z-10 max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 mb-6">
+                  <MapPin size={12} className="text-brand-primary" />
+                  <span className="text-white/60 text-[10px] uppercase tracking-[0.3em] font-bold">Curated Experiences</span>
+                </div>
+                <h2 className="text-3xl md:text-4xl font-serif font-black text-white mb-4 leading-tight">Explore Our Curated Journeys</h2>
+                <p className="text-white/50 mb-8 leading-relaxed">From sacred pilgrimages to hidden Himalayan valleys — discover handcrafted itineraries designed for the discerning traveller.</p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link to="/tours" className="px-8 py-3.5 bg-brand-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-brand-accent transition-colors text-center">
+                    Browse All Tours
+                  </Link>
+                  <Link to="/contact" className="px-8 py-3.5 bg-white/5 border border-white/15 text-white/80 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-colors text-center">
+                    Custom Itinerary
+                  </Link>
+                </div>
+              </div>
+              <div className="hidden md:grid grid-cols-2 gap-4">
+                {[
+                  { icon: Compass, label: "Destinations", value: "50+" },
+                  { icon: Calendar, label: "Years of Expertise", value: "15+" },
+                  { icon: MapPin, label: "Tour Packages", value: "100+" },
+                  { icon: Phone, label: "Support", value: "24/7" },
+                ].map((stat, i) => (
+                  <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center hover:bg-white/10 transition-colors">
+                    <stat.icon size={18} className="text-brand-primary mx-auto mb-2" />
+                    <p className="text-2xl font-black text-white mb-1">{stat.value}</p>
+                    <p className="text-[9px] uppercase tracking-widest text-white/40 font-bold">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
       </div>

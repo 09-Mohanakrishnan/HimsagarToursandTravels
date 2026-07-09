@@ -99,16 +99,42 @@ function FAQEditor({ faqs, onChange }: { faqs: { question: string; answer: strin
 // ── Image Upload Field ────────────────────────────────────────────────────────
 function ImageUpload({ value, onChange, label }: { value: string; onChange: (url: string) => void; label: string }) {
   const ref = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const token = localStorage.getItem("adminToken") || "";
+      const res = await fetch("/api/admin/media/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      const data = await res.json();
+      if (data.url) {
+        onChange(data.url);
+      } else {
+        console.error("Upload failed:", data);
+      }
+    } catch (err) {
+      console.error("Failed to upload image:", err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div>
       <label className="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2">{label}</label>
       <div className="flex gap-3">
         <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder="Image URL or upload below..."
           className="flex-1 bg-slate-50 border border-gray-100 rounded-2xl py-3 px-4 text-sm text-gray-700 outline-none focus:border-brand-primary transition-all" />
-        <button onClick={() => ref.current?.click()} className="px-4 py-3 bg-slate-50 border border-gray-100 rounded-2xl text-sm text-gray-500 hover:border-brand-primary hover:text-brand-primary transition-all flex items-center gap-2">
-          <Upload size={14} /> Upload
+        <button onClick={() => ref.current?.click()} disabled={uploading} className="px-4 py-3 bg-slate-50 border border-gray-100 rounded-2xl text-sm text-gray-500 hover:border-brand-primary hover:text-brand-primary transition-all flex items-center gap-2 disabled:opacity-50">
+          {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} {uploading ? "Uploading..." : "Upload"}
         </button>
-        <input ref={ref} type="file" accept="image/*" className="hidden" onChange={e => { if (e.target.files?.[0]) onChange(URL.createObjectURL(e.target.files[0])); }} />
+        <input ref={ref} type="file" accept="image/*" className="hidden" onChange={e => { if (e.target.files?.[0]) handleFileUpload(e.target.files[0]); }} />
       </div>
       {value && (
         <div className="mt-3 relative w-40 h-28 rounded-2xl overflow-hidden border border-gray-100">
@@ -545,7 +571,18 @@ export default function BlogEditor() {
                       <div className="mt-4">
                         <label className="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2">Or Upload from Computer</label>
                         <input ref={featuredImageFileRef} type="file" accept="image/*" className="hidden"
-                          onChange={e => { if (e.target.files?.[0]) { const f = e.target.files[0]; setField("featuredImageFile", f); setField("featuredImage", URL.createObjectURL(f)); } }} />
+                          onChange={async e => {
+                            if (!e.target.files?.[0]) return;
+                            const file = e.target.files[0];
+                            try {
+                              const fd = new FormData();
+                              fd.append("file", file);
+                              const tk = localStorage.getItem("adminToken") || "";
+                              const res = await fetch("/api/admin/media/upload", { method: "POST", headers: { Authorization: `Bearer ${tk}` }, body: fd });
+                              const data = await res.json();
+                              if (data.url) { setField("featuredImage", data.url); setField("featuredImageFile", null); }
+                            } catch (err) { console.error("Failed to upload featured image:", err); }
+                          }} />
                         <button onClick={() => featuredImageFileRef.current?.click()} className="flex items-center gap-2 px-5 py-3 bg-slate-50 border border-gray-100 rounded-2xl text-sm text-gray-500 hover:border-brand-primary hover:text-brand-primary transition-all">
                           <Upload size={14} /> Upload Featured Image
                         </button>
